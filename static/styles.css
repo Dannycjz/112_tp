@@ -39,29 +39,3 @@ main
     /* center contents */
     text-align: center;
 }
-
-main img
-{
-    /* constrain images on small screens */
-    max-width: 100%;
-}
-
-th, td {
-    padding: 1em;
-    border-bottom: 1px solid black;
-}
-
-tr:nth-child(even) {background-color: #f2f2f2;}
-
-th {
-  background-color: #2D9CDB;
-  color: white;
-}
-
-.profile {
-    width: 30%;
-    margin-left: 35%;
-    margin-right: 35%;
-    margin-bottom: 1em;
-}
-

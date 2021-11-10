@@ -11,7 +11,7 @@ from app_helper import login_required
 
 app=Flask(__name__)
 
-# Configure session to use filesystem (instead of signed cookies)
+# Configure session to use filesystem 
 app.config["SESSION_FILE_DIR"] = mkdtemp()
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -84,7 +84,7 @@ def login():
         # Ensure username exists and password is correct 
 
         # Remember which user has logged in
-        user_data=df.loc[df['user_name']=='k'].values[0]
+        user_data=df.loc[df['user_name']==username].values[0]
         session["user_id"]=user_data[0]
 
         # Redirect user to home page

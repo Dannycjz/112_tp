@@ -24,4 +24,6 @@ cursor.execute('''
 df=pd.DataFrame(cursor.fetchall(), columns=['user_id', 'user_name', 'password'])
 
 # db.commit()
-print(df)
+# print(df)
+user_data=df.loc[df['user_name']=='k'].values[0]
+print(user_data[0])

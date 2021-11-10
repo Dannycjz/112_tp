@@ -1,3 +1,5 @@
 flask
 pusher
+pandas
 sqlalchemy
+flask_session

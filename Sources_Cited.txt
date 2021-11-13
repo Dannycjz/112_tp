@@ -1,0 +1,22 @@
+All the sources referenced for my term project:
+    Chess Sources:
+    https://www.geeksforgeeks.org/design-a-chess-game/
+    https://levelup.gitconnected.com/chess-python-ca4532c7f5a4
+
+    Socket/Server Sources:
+    https://docs.python.org/3/library/socket.html
+    https://docs.python.org/3/library/_thread.html
+    https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/
+    https://stackoverflow.com/questions/25464295/dump-a-list-in-a-pickle-file-and-retrieve-it-back-later
+    https://docs.python.org/3/library/pickle.html
+    https://www.geeksforgeeks.org/socket-programming-multi-threading-python/
+    https://www.geeksforgeeks.org/simple-chat-room-using-python/
+    https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+
+    Web programming/database sources:
+    https://docs.python.org/3/library/sqlite3.html
+    https://flask-session.readthedocs.io/en/latest/
+    https://itnext.io/flask-sessions-what-are-they-for-how-it-works-what-options-i-have-to-persist-this-data-4ca48a34d3
+    https://stackoverflow.com/questions/35074820/extracting-a-single-data-from-pandas-data-frame
+    https://www.sqlitetutorial.net/sqlite-select/
+    https://flask.palletsprojects.com/en/1.0.x/patterns/viewdecorators/

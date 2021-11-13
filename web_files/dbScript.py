@@ -1,3 +1,5 @@
+'''Original code inspired by https://docs.python.org/3/library/sqlite3.html'''
+
 import sqlite3
 import pandas as pd
 "Used for debugging/testing purposes"

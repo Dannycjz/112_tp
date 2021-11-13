@@ -1,5 +1,10 @@
 import socket, pickle
 
+'''
+Code inspired by:
+www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+'''
+
 class Network(object):
     def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,6 +36,7 @@ class Network(object):
 # n=Network()
 # dots=pickle.loads(n.dots)
 # print(dots)
-
+# dots=n.send((150, 150))
+# print(dots)
 
     

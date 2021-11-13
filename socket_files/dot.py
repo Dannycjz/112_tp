@@ -7,8 +7,6 @@ def s21MidtermAnimation_appStarted(app):
     # Sets parameters for app objects
     app.dots=pickle.loads(app.n.dots)
     app.currDot=None
-    app.x=0
-    app.y=0
 
 # def s21MidtermAnimation_keyPressed(app, event):
 #     # Reset the animation if the user presses r
@@ -17,9 +15,9 @@ def s21MidtermAnimation_appStarted(app):
 
 def s21MidtermAnimation_mousePressed(app, event):
     # Creates a dot at the location of the mounse click
-    app.x=event.x
-    app.y=event.y
-    app.currDot=(app.x, app.y)
+    x=event.x
+    y=event.y
+    app.currDot=(x, y)
 
 def s21MidtermAnimation_timerFired(app):
     if app.currDot==None:
@@ -34,7 +32,8 @@ def s21MidtermAnimation_redrawAll(app, canvas):
         r=20
         cx=point[0]
         cy=point[1]
-        canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill='green')
+        fill=point[2]
+        canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill=fill)
 
 def s21Midterm1Animation():
     runApp(width=400, height=400, fnPrefix='s21MidtermAnimation_')

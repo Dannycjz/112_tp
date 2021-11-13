@@ -2,7 +2,8 @@ import socket, sys, pickle
 from _thread import *
 
 # Local IPV4 Address for my desktop
-HOST="172.26.19.215"
+# HOST="172.26.19.215"
+HOST="172.25.3.242"
 port=5555
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)

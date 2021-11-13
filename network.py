@@ -3,7 +3,8 @@ import socket, pickle
 class Network(object):
     def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HOST= "172.26.19.215"
+        # self.HOST= "172.26.19.215"
+        self.HOST="172.25.3.242"
         self.port=5555
         self.addr=(self.HOST, self.port)
         self.dots=self.connect()

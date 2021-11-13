@@ -10,10 +10,10 @@ def s21MidtermAnimation_appStarted(app):
     app.x=0
     app.y=0
 
-def s21MidtermAnimation_keyPressed(app, event):
-    # Reset the animation if the user presses r
-    if event.key=='r':
-        s21MidtermAnimation_appStarted(app)
+# def s21MidtermAnimation_keyPressed(app, event):
+#     # Reset the animation if the user presses r
+#     if event.key=='r':
+#         s21MidtermAnimation_appStarted(app)
 
 def s21MidtermAnimation_mousePressed(app, event):
     # Creates a dot at the location of the mounse click

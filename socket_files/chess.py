@@ -1,8 +1,26 @@
 from cmu_112_graphics import *
-
+from copy import deepcopy
 def appStarted(app):
     app.board=[[]for i in range(8)]
+    app.pieces=init_pieces()
     app.cellSize=app.width//8
+
+def init_pieces():
+    pieces=[
+        [("black", "castle"), ("black", "knight"), ("black", "bishop"), 
+        ("black", "queen"), ("black", "king"), ("black", "bishop"), 
+        ("black", "knight"), ("black", "castle")],
+        [("empty", "empty")for i in range(8)], 
+        [("empty", "empty")for i in range(8)], 
+        [("empty", "empty")for i in range(8)], 
+        [("empty", "empty")for i in range(8)], 
+        [("empty", "empty")for i in range(8)], 
+        [("empty", "empty")for i in range(8)], 
+        [("white", "castle"), ("white", "knight"), ("white", "bishop"), 
+        ("white", "queen"), ("white", "king"), ("white", "bishop"), 
+        ("white", "knight"), ("white", "castle")]
+        ]
+    return pieces
 
 # returns (x0, y0, x1, y1) corners/bounding box of given cell in grid
 # # Function partially taken from 15-112 website 

@@ -17,7 +17,9 @@ https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-mul
 '''
 def main():
     # Local IPV4 Address for my desktop
-    HOST="172.26.19.215"
+    # HOST="172.26.19.215"
+    # laptop IP
+    HOST = "172.25.3.242"
     port=5555
 
     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,7 +32,7 @@ def main():
         str(e)
 
     # Make the socket start listening to connections
-    s.listen(2)
+    s.listen()
     print("Waiting for a connection, Server Started")
 
     # Tracks current player

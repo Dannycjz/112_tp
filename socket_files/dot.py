@@ -3,7 +3,7 @@ import math, pickle
 from network import Network
 
 def s21MidtermAnimation_appStarted(app):
-    app.n=Network()
+    app.n=Network("172.26.18.51")
     # Sets parameters for app objects
     app.dots=pickle.loads(app.n.dots)
     app.currDot=None

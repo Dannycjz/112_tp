@@ -28,6 +28,8 @@ def init_sprites(app):
         blackSprite=app.chessSprites.crop((leftx, height/2, rightx, height))
         app.whitePieces[newPiece]=whiteSprite
         app.blackPieces[newPiece]=blackSprite
+        app.selected=[[False, False, False, False, 
+                    False, False, False, False]for i in range(8)]
 
 # Initializes 2D list to store the locations of pieces on board
 def init_pieces():
@@ -46,6 +48,16 @@ def init_pieces():
         ("white", "knight"), ("white", "castle")]
         ]
     return pieces
+
+def mouseClicked(app, event):
+    x=event.x
+    y=event.y
+    for row in range(8):
+        for col in range(8):
+            (x0, y0, x1, y1) = getCellBounds(app, row, col)
+            if (x in range(x0, x1)) and (y in range(y0, y1)):
+                app.selected[row][col]=True
+
 
 # Returns (x, y) center of given cell in grid
 def getCellCenter(app, row, col):

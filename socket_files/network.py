@@ -6,12 +6,10 @@ www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-cl
 '''
 
 class Network(object):
-    def __init__(self):
+    def __init__(self, IP):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Desktop IP 
-        self.HOST= "172.26.19.215"
-        # Laptop IP
-        #self.HOST="172.25.3.242"
+        # Takes IP as input
+        self.HOST=IP
         self.port=5555
         self.addr=(self.HOST, self.port)
         self.dots=self.connect()

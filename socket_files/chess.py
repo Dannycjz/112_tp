@@ -8,13 +8,18 @@ def appStarted(app):
     imageUrl="http://clipart-library.com/images/pcqrGKzLi.png"
     #imageUrl="https://www.clipartmax.com/png/middle/455-4559543_chess-pieces-sprite-chess-pieces-sprite-sheet.png"
     app.chessSprites=app.loadImage(imageUrl)
+    # Initates dicts that store the sprites of chess pieces
     app.blackPieces=dict()
     app.whitePieces=dict()
     init_sprites(app)
-    app.selected=[[False, False, False, False, 
+    # Initiates 2D list to represent which cell should be outlined on the board
+    app.outlined=[[False, False, False, False, 
                     False, False, False, False]for i in range(8)]
+    # Initiates a variable that stores which piece is selected
     app.selectedPiece=None
+    # Initiates a variable that indicates whether a player is making a move
     app.makingMove=False
+    # Initiates a variable that stores the current location of the selected piece
     app.currLoc=None
 
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
@@ -54,37 +59,94 @@ def init_pieces():
 def mousePressed(app, event):
     x=event.x
     y=event.y
-    selectCell(app, x, y)
-    makeMove(app)
-    
-def selectCell(app, x, y):
-    for row in range(8):
-        for col in range(8):
-            (x0, y0, x1, y1) = getCellBounds(app, row, col)
-            if (x in range(int(x0), int(x1))) and (y in range(int(y0), int(y1))):
-                app.selected[row][col]=True
-            else:
-                app.selected[row][col]=False
+    cell=selectCell(app, x, y)
+    if cell!=None:
+        row=cell[0]
+        col=cell[1]
+        if app.makingMove is False:
+            selectPiece(app, row, col)
+            updateValidMoves(app)
+        else:
+            if isValidMove(app, row, col):
+                makeMove(app, row, col)
+                clearOutlines(app)
 
-def makeMove(app):
+# Selects a cell on the chessboard
+def selectCell(app, x, y):
+    if app.makingMove is False:
+        for row in range(8):
+            for col in range(8):
+                (x0, y0, x1, y1) = getCellBounds(app, row, col)
+                if (x in range(int(x0), int(x1))) and (y in range(int(y0), int(y1))):
+                    app.outlined[row][col]=True
+                    selectedCell=(row, col)
+        return selectedCell
+
+# Selects a chess piece if the user clicks on one
+def selectPiece(app, row, col):
+    if app.pieces[row][col]!=("empty", "empty"):
+        app.selectedPiece=app.pieces[row][col]
+        app.currLoc=(row, col)
+        app.makingMove=True
+    else:
+        pass
+
+# Moves the selected chess piece to the destination cell
+def makeMove(app, row, col):
+    currR=app.currLoc[0]
+    currC=app.currLoc[1]
+    app.pieces[currR][currC]=("empty", "empty")
+    app.pieces[row][col]=app.selectedPiece
+    app.selectedPiece=None
+    app.currLoc=None
+    app.makingMove=False
+
+# Clear outlines
+def clearOutlines(app):
     for row in range(8):
         for col in range(8):
-            if app.makingMove is False:
-                if ((app.selected[row][col] is True) and 
-                    (app.pieces[row][col]!=("empty", "empty"))):
-                    app.selectedPiece=app.pieces[row][col]
-                    app.currLoc=(row, col)
-                    app.makingMove=True
+            app.outlined[row][col]=False
+
+# Updates valid moves for selected piece in [currR][currC]
+def updateValidMoves(app):
+    for row in range(8):
+        for col in range(8):
+            if isValidMove(app, row, col):
+                app.outlined[row][col]=True
+
+# Checks if [row][col] is a valid move from [currR][currC]
+def isValidMove(app, row, col):
+    currR=app.currLoc[0]
+    currC=app.currLoc[1]
+    piece=app.selectedPiece[1]
+    if piece=="pawn":
+        return isValidPawnMove(app, currR, currC, row, col)
+
+# Checks if [row][col] is a valid pawn move from [currR][currC]
+def isValidPawnMove(app, currR, currC, row, col):
+    color=app.selectedPiece[0]
+    if color=="black":
+        if app.pieces[row][col]==("empty", "empty"):
+            if (col==currC) and (currR==row-1):
+                return True
             else:
-                if ((app.selected[row][col] is True) and 
-                    (app.pieces[row][col]==("empty", "empty"))):
-                    currR=app.currLoc[0]
-                    currC=app.currLoc[1]
-                    app.pieces[currR][currC]=("empty", "empty")
-                    app.pieces[row][col]=app.selectedPiece
-                    app.selectedPiece=None
-                    app.currLoc=None
-                    app.makingMove=False
+                return False
+        else:
+            if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else:
+                return False
+    else:
+        if app.pieces[row][col]==("empty", "empty"):
+            if (col==currC) and (currR==row+1):
+                return True
+            else:
+                return False
+        else:
+            if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else:
+                return False
 
 # Returns (x, y) center of given cell in grid
 def getCellCenter(app, row, col):
@@ -112,7 +174,7 @@ def drawCell(app, canvas, row, col):
         fill="grey"
     else:
         fill="white"
-    if app.selected[row][col] is True:
+    if app.outlined[row][col] is True:
         canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='red', 
                                 width=4)
     else:

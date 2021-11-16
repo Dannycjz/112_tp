@@ -1,6 +1,5 @@
 import tkinter
 from cmu_112_graphics import *
-from copy import deepcopy
 
 def appStarted(app):
     app.board=[[]for i in range(8)]
@@ -58,7 +57,6 @@ def mousePressed(app, event):
     selectCell(app, x, y)
     makeMove(app)
     
-
 def selectCell(app, x, y):
     for row in range(8):
         for col in range(8):
@@ -73,17 +71,20 @@ def makeMove(app):
         for col in range(8):
             if app.makingMove is False:
                 if ((app.selected[row][col] is True) and 
-                    (app.pieces[row][col]!="empty")):
+                    (app.pieces[row][col]!=("empty", "empty"))):
                     app.selectedPiece=app.pieces[row][col]
                     app.currLoc=(row, col)
+                    app.makingMove=True
             else:
                 if ((app.selected[row][col] is True) and 
-                    (app.pieces[row][col]=="empty")):
+                    (app.pieces[row][col]==("empty", "empty"))):
                     currR=app.currLoc[0]
                     currC=app.currLoc[1]
-                    app.pieces[currR][currC]="empty"
+                    app.pieces[currR][currC]=("empty", "empty")
                     app.pieces[row][col]=app.selectedPiece
                     app.selectedPiece=None
+                    app.currLoc=None
+                    app.makingMove=False
 
 # Returns (x, y) center of given cell in grid
 def getCellCenter(app, row, col):

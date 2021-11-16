@@ -12,6 +12,11 @@ def appStarted(app):
     app.blackPieces=dict()
     app.whitePieces=dict()
     init_sprites(app)
+    app.selected=[[False, False, False, False, 
+                    False, False, False, False]for i in range(8)]
+    app.selectedPiece=None
+    app.makingMove=False
+    app.currLoc=None
 
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
 # Loads chess sprites and stores them in dicts
@@ -28,8 +33,6 @@ def init_sprites(app):
         blackSprite=app.chessSprites.crop((leftx, height/2, rightx, height))
         app.whitePieces[newPiece]=whiteSprite
         app.blackPieces[newPiece]=blackSprite
-        app.selected=[[False, False, False, False, 
-                    False, False, False, False]for i in range(8)]
 
 # Initializes 2D list to store the locations of pieces on board
 def init_pieces():
@@ -49,15 +52,38 @@ def init_pieces():
         ]
     return pieces
 
-def mouseClicked(app, event):
+def mousePressed(app, event):
     x=event.x
     y=event.y
+    selectCell(app, x, y)
+    makeMove(app)
+    
+
+def selectCell(app, x, y):
     for row in range(8):
         for col in range(8):
             (x0, y0, x1, y1) = getCellBounds(app, row, col)
-            if (x in range(x0, x1)) and (y in range(y0, y1)):
+            if (x in range(int(x0), int(x1))) and (y in range(int(y0), int(y1))):
                 app.selected[row][col]=True
+            else:
+                app.selected[row][col]=False
 
+def makeMove(app):
+    for row in range(8):
+        for col in range(8):
+            if app.makingMove is False:
+                if ((app.selected[row][col] is True) and 
+                    (app.pieces[row][col]!="empty")):
+                    app.selectedPiece=app.pieces[row][col]
+                    app.currLoc=(row, col)
+            else:
+                if ((app.selected[row][col] is True) and 
+                    (app.pieces[row][col]=="empty")):
+                    currR=app.currLoc[0]
+                    currC=app.currLoc[1]
+                    app.pieces[currR][currC]="empty"
+                    app.pieces[row][col]=app.selectedPiece
+                    app.selectedPiece=None
 
 # Returns (x, y) center of given cell in grid
 def getCellCenter(app, row, col):
@@ -85,8 +111,12 @@ def drawCell(app, canvas, row, col):
         fill="grey"
     else:
         fill="white"
-    canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='black', 
-                            width=3)
+    if app.selected[row][col] is True:
+        canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='red', 
+                                width=4)
+    else:
+        canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='black', 
+                                width=3)
 
 # Draws the chess board
 def drawBoard(app, canvas):

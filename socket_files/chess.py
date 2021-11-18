@@ -1,7 +1,11 @@
-import tkinter
+import tkinter, pickle
 from cmu_112_graphics import *
+from network import Network
 
 def appStarted(app):
+    app.n=Network()
+    app.player=int(app.n.connect())
+    app.game=None
     app.board=[[]for i in range(8)]
     app.pieces=init_pieces()
     # Initiates 2D lists to represent killzones
@@ -221,6 +225,21 @@ def mousePressed(app, event):
     x=event.x
     y=event.y
     (row, col)=selectCell(app, x, y)
+    # If user is not currently making a move
+    # Either select a piece or clear moves/outlines
+    if app.player==0:
+        if app.n.connected() and (not app.game.p0Went):
+            play(app, row, col)
+        else:
+            pass
+    elif app.player==1:
+        if app.n.connected() and (not app.game.p1Went):
+            play(app, row, col)
+        else:
+            pass
+
+# Moves the game forward based on user input
+def play(app, row, col):
     if app.makingMove is False:
         elem=selectPiece(app, row, col)
         if elem!=None:
@@ -230,11 +249,17 @@ def mousePressed(app, event):
         else:
             clearValidMoves(app)
             clearKZOutlines(app)
+    # If the user is making a move
     else:
+        # Make the move if the move is valid
         if isValidMove(app, row, col):
+            currR=app.currLoc[0]
+            currC=app.currLoc[1]
             makeMove(app, row, col)
+            app.n.send((currR, currC, row, col))
             clearValidMoves(app)
             clearKZOutlines(app)
+        # Clear outlines
         else:
             unselectPiece(app)
             clearValidMoves(app)
@@ -255,6 +280,10 @@ def clearKZOutlines(app):
 
 def timerFired(app):
     update_killzones(app)
+    try:
+        app.game=app.n.send("get")
+    except:
+        print("Couldn't get game")
 
 # Selects a cell on the chessboard
 def selectCell(app, x, y):

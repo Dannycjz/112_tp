@@ -1,5 +1,6 @@
-import tkinter
+import tkinter, pickle
 from cmu_112_graphics import *
+from network import Network
 
 def appStarted(app):
     app.board=[[]for i in range(8)]

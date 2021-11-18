@@ -6,19 +6,17 @@ www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-cl
 '''
 
 class Network(object):
-    def __init__(self, IP):
+    def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # Takes IP as input
-        self.HOST=IP
+        self.HOST= "172.26.19.215"
         self.port=5555
         self.addr=(self.HOST, self.port)
-        self.dots=self.connect()
 
     def connect(self):
         # Error handling
         try:    
             self.client.connect(self.addr)
-            return self.client.recv(2048*2)
+            return self.client.recv(2048*2).decode()
         except:
             pass
     

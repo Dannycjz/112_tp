@@ -7,81 +7,96 @@
 """
 import socket, sys, pickle
 from _thread import *
-
-# Initiates list in memory to store dots
-dots=[(200, 200, "red")]
+from game import Game
 
 '''
 Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
 '''
-def main():
-    # Local IPV4 Address
-    HOST = "172.26.18.51"
-    port=5555
+# Local IPV4 Address
+HOST = "172.26.19.215"
+port=5555
 
-    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    try:
-        s.bind((HOST, port))
-    # Error Handling
-    # prints out error for debugging
-    except socket.error as e:
-        str(e)
+try:
+    s.bind((HOST, port))
+# Error Handling
+# prints out error for debugging
+except socket.error as e:
+    str(e)
 
-    # Make the socket start listening to connections
-    s.listen()
-    print("Waiting for a connection, Server Started")
+# Make the socket start listening to connections
+s.listen(2)
+print("Waiting for a connection, Server Started")
 
-    # Tracks current player
-    currentPlayer=0
-    # continuously checks for connections 
-    while True:
-        # aceepts incoming connection
-        conn, addr=s.accept()
-        print("Connected to:", addr)
-
-        start_new_thread(client_thread, (conn, currentPlayer))
-        currentPlayer+=1
+connected=set()
+games={}
+idCount=0
 
 '''
 Code inspired by 
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
 '''
-def client_thread(conn, currentPlayer):
-    if currentPlayer==0: 
-        color=("red", )
-    else:
-        color=("green", )
-    
-    # Sends dots back to client to start
-    conn.send(pickle.dumps(dots))
+def client_thread(conn, player, gameId):
+    global idCount
+    # Sends assigned gameId back to client to start
+    conn.send(str.encode(str(player)))
 
+    reply=""
     # Continuously check for data from conn
     while True:
         try:
             # Try to receive/decode data 
             data=pickle.loads(conn.recv(2048*2))
-            dot=data+color
-            dots.append(dot)
-            
-            # Break connection if the client is not sending data
-            if not data:
-                print("Disconnected")
+
+            if gameId in games:
+                game=games[gameId]
+                # Break connection if the client is not sending data
+                if not data:
+                    print("Disconnected")
+                    break
+                elif type(data)==str and data=="get":
+                    reply=game
+                elif type(data)==tuple:
+                    game.updateMove(player, data)
+                    reply=game
+
+                conn.sendall(pickle.dumps(reply))
+            else:
                 break
-            else: 
-                print(dots)
-            
-            # Encode info before sending it to the client
-            conn.sendall(pickle.dumps(dots))
-        
+                
         # Error handling
         except:
             break
     
     # If disconnected:
     print("Lost connection")
+    try:
+        del games[gameId]
+        print("Closing Game", gameId)
+    except:
+        pass
+    idCount-=1
     conn.close()
 
-if __name__=="__main__":
-    main()
+# continuously checks for connections 
+while True:
+    # aceepts incoming connection
+    conn, addr=s.accept()
+    print("Connected to:", addr)
+
+    # Keeps track of how many people are connected to the server
+    idCount+=1
+    player=0
+    gameId=(idCount-1)//2
+    
+    # Creates a new game if there are an odd number of connections
+    if idCount%2==1:
+        games[gameId]=Game(gameId)
+        print("Creating a new game...")
+    else:
+        games[gameId].ready = True
+        player=1
+
+    start_new_thread(client_thread, (conn, player, gameId))

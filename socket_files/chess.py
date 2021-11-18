@@ -3,6 +3,9 @@ from cmu_112_graphics import *
 from network import Network
 
 def appStarted(app):
+    app.n=Network()
+    app.player=int(app.n.connect())
+    app.game=None
     app.board=[[]for i in range(8)]
     app.pieces=init_pieces()
     # Initiates 2D lists to represent killzones
@@ -222,20 +225,35 @@ def mousePressed(app, event):
     x=event.x
     y=event.y
     (row, col)=selectCell(app, x, y)
+    # If user is not currently making a move
+    # Either select a piece or clear moves/outlines
+    if app.game.went!=app.player and app.game.connected():
+        play(app, row, col)
+    else:
+        pass
+
+# Moves the game forward based on user input
+def play(app, row, col):
     if app.makingMove is False:
         elem=selectPiece(app, row, col)
         if elem!=None:
             color=elem[0]
             updateKZOutlines(app, color)
             updateValidMoves(app)
-        else:
+        else: 
             clearValidMoves(app)
             clearKZOutlines(app)
+    # If the user is making a move
     else:
+        # Make the move if the move is valid
         if isValidMove(app, row, col):
+            currR=app.currLoc[0]
+            currC=app.currLoc[1]
             makeMove(app, row, col)
+            app.n.send((currR, currC, row, col))
             clearValidMoves(app)
             clearKZOutlines(app)
+        # Clear outlines
         else:
             unselectPiece(app)
             clearValidMoves(app)
@@ -256,6 +274,21 @@ def clearKZOutlines(app):
 
 def timerFired(app):
     update_killzones(app)
+    try:
+        # Tries to get game from server
+        app.game=app.n.send("get")
+        # If the other player made a move
+        if app.game.went!=app.game.player:
+            # Get the move and make the move on local board
+            (currR, currC, row, col)=app.game.getMove()
+            play(app, currR, currC)
+            play(app, row, col)
+        else: 
+            pass
+    except:
+        print("Couldn't get game")
+        pass
+    
 
 # Selects a cell on the chessboard
 def selectCell(app, x, y):

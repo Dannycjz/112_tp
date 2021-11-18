@@ -343,7 +343,12 @@ def isValidMove(app, row, col):
     if app.pieces[row][col][0]==color: return False
     # Checks valid moves based on piece type
     if piece=="pawn":
-        return isValidPawnMove(app, currR, currC, row, col, color)
+        if color=="black" and currR==1:
+            return isValidStartPawnMove(app, currR, currC, row, col, color)
+        elif color=="white" and currR==6:
+            return isValidStartPawnMove(app, currR, currC, row, col, color)
+        else:
+            return isValidPawnMove(app, currR, currC, row, col, color)
     elif piece=="castle":
         return isValidCastleMove(app, currR, currC, row, col)
     elif piece=="knight":
@@ -357,7 +362,28 @@ def isValidMove(app, row, col):
 
 # Checks if [row][col] is a valid start pawn move from [currR][currC]
 def isValidStartPawnMove(app, currR, currC, row, col, color):
-    pass
+    if color=="black":
+        # Empty cells move set
+        if app.pieces[row][col]==("empty", "empty"):
+            if (col==currC) and ((currR==row-1)or (currR==row-2)):
+                return True
+            else: return False
+        # Enemy eating movement set
+        else:
+            if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else: return False
+    else:
+        # Empty cells move set
+        if app.pieces[row][col]==("empty", "empty"):
+            if (col==currC) and ((currR==row+1)or (currR==row+2)):
+                return True
+            else: return False
+        # Enemy eating movement set
+        else:
+            if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else: return False
 
 # Checks if [row][col] is a valid normal pawn move from [currR][currC]
 def isValidPawnMove(app, currR, currC, row, col, color):

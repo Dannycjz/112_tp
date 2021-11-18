@@ -227,37 +227,40 @@ def mousePressed(app, event):
     (row, col)=selectCell(app, x, y)
     # If user is not currently making a move
     # Either select a piece or clear moves/outlines
-    if app.game.went!=app.player and app.game.connected():
-        play(app, row, col)
-    else:
-        pass
-
-# Moves the game forward based on user input
-def play(app, row, col):
     if app.makingMove is False:
-        elem=selectPiece(app, row, col)
-        if elem!=None:
-            color=elem[0]
-            updateKZOutlines(app, color)
-            updateValidMoves(app)
-        else: 
-            clearValidMoves(app)
-            clearKZOutlines(app)
-    # If the user is making a move
+        selectPieceToMove(app, row, col)
     else:
-        # Make the move if the move is valid
-        if isValidMove(app, row, col):
+        if app.game.went!=app.player and app.game.connected():
             currR=app.currLoc[0]
             currC=app.currLoc[1]
-            makeMove(app, row, col)
+            movePiece(app, row, col)
             app.n.send((currR, currC, row, col))
-            clearValidMoves(app)
-            clearKZOutlines(app)
-        # Clear outlines
         else:
-            unselectPiece(app)
-            clearValidMoves(app)
-            clearKZOutlines(app)
+            pass
+
+# Select the piece that the user clicked on
+# Or reset if user did not click on a piece
+def selectPieceToMove(app, row, col):
+    elem=selectPiece(app, row, col)
+    if elem!=None:
+        color=elem[0]
+        updateKZOutlines(app, color)
+        updateValidMoves(app)
+    else: 
+        clearValidMoves(app)
+        clearKZOutlines(app)
+
+# Make the move based on the piece the user selected
+def movePiece(app, row, col):
+    if isValidMove(app, row, col):
+        makeMove(app, row, col)
+        clearValidMoves(app)
+        clearKZOutlines(app)
+    # Clear outlines
+    else:
+        unselectPiece(app)
+        clearValidMoves(app)
+        clearKZOutlines(app)
 
 # Updates outlines for the killzones
 def updateKZOutlines(app, color):
@@ -281,8 +284,9 @@ def timerFired(app):
         if app.game.went!=app.game.player:
             # Get the move and make the move on local board
             (currR, currC, row, col)=app.game.getMove()
-            play(app, currR, currC)
-            play(app, row, col)
+            print(currR, currC, row, col)
+            selectPieceToMove(app, currR, currC)
+            movePiece(app, row, col)
         else: 
             pass
     except:

@@ -2,7 +2,6 @@
 Code inspired by 
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 """
-from tkinter.constants import FALSE
 
 
 class Game(object):
@@ -14,6 +13,9 @@ class Game(object):
         self.whiteWins=False
         self.blackWins=False
         self.ties=0
+    
+    def __repr__(self):
+        return str(self.id)
     
     def getMove(self):
         return self.move

@@ -13,8 +13,8 @@ from game import Game
 Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
 '''
-# Local IPV4 Address
-HOST = "172.26.19.215"
+# Input Local IPV4 Address
+HOST = "172.26.99.23"
 port=5555
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -56,13 +56,12 @@ def client_thread(conn, player, gameId):
                 if not data:
                     print("Disconnected")
                     break
-                elif type(data)==str and data=="get":
-                    reply=game
+                # elif type(data)==str and data=="get":
+                #     reply=game
                 elif type(data)==tuple:
                     game.updateMove(player, data)
-                    reply=game
 
-                conn.sendall(pickle.dumps(reply))
+                conn.sendall(pickle.dumps(game))
             else:
                 break
                 
@@ -94,9 +93,12 @@ while True:
     # Creates a new game if there are an odd number of connections
     if idCount%2==1:
         games[gameId]=Game(gameId)
-        print("Creating a new game...")
+        print(f"Created a new game...:{gameId}")
+        print(games)
     else:
         games[gameId].ready = True
         player=1
+        print(f"Second player connected to game{gameId}")
+        print(games)
 
     start_new_thread(client_thread, (conn, player, gameId))

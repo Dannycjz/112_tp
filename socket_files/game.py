@@ -2,30 +2,28 @@
 Code inspired by 
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 """
+from tkinter.constants import FALSE
+
+
 class Game(object):
     def __init__(self, id):
-        self.p0Went=False
-        self.p1Went= False
+        self.went=None
         self.ready=False
         self.id=id
-        self.moves={}
+        self.move=()
         self.whiteWins=False
         self.blackWins=False
         self.ties=0
+    
+    def getMove(self):
+        return self.move
 
-    def get_player_move(self, p):
-        """
-        :param p: [0,1]
-        :return: Move
-        """
-        return self.moves[p]
-
-    def play(self, player, move):
-        self.moves[player] = move
+    def updateMove(self, player, move):
+        self.move = move
         if player == 0:
-            self.p1Went = True
+            self.went=1
         else:
-            self.p2Went = True
+            self.went=0
 
     def connected(self):
         return self.ready

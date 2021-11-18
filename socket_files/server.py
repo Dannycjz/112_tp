@@ -14,7 +14,7 @@ Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
 '''
 # Local IPV4 Address
-HOST = "172.26.18.51"
+HOST = "172.26.19.215"
 port=5555
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,6 +43,7 @@ def client_thread(conn, player, gameId):
     # Sends assigned gameId back to client to start
     conn.send(str.encode(str(player)))
 
+    reply=""
     # Continuously check for data from conn
     while True:
         try:
@@ -50,15 +51,21 @@ def client_thread(conn, player, gameId):
             data=pickle.loads(conn.recv(2048*2))
 
             if gameId in games:
+                game=games[gameId]
                 # Break connection if the client is not sending data
                 if not data:
                     print("Disconnected")
                     break
-                else:
-                    if player==0:
-                        pass
+                elif type(data)==str and data=="get":
+                    reply=game
+                elif type(data)==tuple:
+                    game.updateMove(player, data)
+                    reply=game
+
+                conn.sendall(pickle.dumps(reply))
             else:
                 break
+                
         # Error handling
         except:
             break

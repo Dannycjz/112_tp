@@ -33,6 +33,8 @@ def appStarted(app):
     app.makingMove=False
     # Initiates a variable that stores the current location of the selected piece
     app.currLoc=None
+    # Initiates a variable that keeps track of whether the local board is updated
+    app.updated=False
 
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
 # Loads chess sprites and stores them in dicts
@@ -230,11 +232,10 @@ def mousePressed(app, event):
     if app.makingMove is False:
         selectPieceToMove(app, row, col)
     else:
-        if app.game.went!=app.player and app.game.connected():
+        if app.game.connected():
             currR=app.currLoc[0]
             currC=app.currLoc[1]
-            movePiece(app, row, col)
-            app.n.send((currR, currC, row, col))
+            movePiece(app, row, col, currR, currC)
         else:
             pass
 
@@ -251,9 +252,11 @@ def selectPieceToMove(app, row, col):
         clearKZOutlines(app)
 
 # Make the move based on the piece the user selected
-def movePiece(app, row, col):
+def movePiece(app, row, col, currR, currC):
     if isValidMove(app, row, col):
-        makeMove(app, row, col)
+        app.n.send((currR, currC, row, col))
+        app.updated=False
+        makeMove(app, row, col, currR, currC)
         clearValidMoves(app)
         clearKZOutlines(app)
     # Clear outlines
@@ -278,21 +281,22 @@ def clearKZOutlines(app):
 def timerFired(app):
     update_killzones(app)
     try:
-        # Tries to get game from server
+    # Tries to get game from server
         app.game=app.n.send("get")
-        # If the other player made a move
-        if app.game.went!=app.game.player:
-            # Get the move and make the move on local board
-            (currR, currC, row, col)=app.game.getMove()
-            print(currR, currC, row, col)
-            selectPieceToMove(app, currR, currC)
-            movePiece(app, row, col)
-        else: 
-            pass
     except:
         print("Couldn't get game")
         pass
-    
+    if not app.game.updated[app.player]:
+        # Get the move and make the move on local board
+        move=app.game.getMove(app.player)
+        if move!=():
+            (currR, currC, row, col)=move
+            print(currR, currC, row, col)
+            selectPieceToMove(app, currR, currC)
+            makeMove(app, row, col, currR, currC)
+            app.n.send("Updated")
+        else:
+            pass
 
 # Selects a cell on the chessboard
 def selectCell(app, x, y):
@@ -320,9 +324,7 @@ def selectPiece(app, row, col):
         return None
 
 # Moves the selected chess piece to the destination cell
-def makeMove(app, row, col):
-    currR=app.currLoc[0]
-    currC=app.currLoc[1]
+def makeMove(app, row, col, currR, currC):
     app.pieces[currR][currC]=("empty", "empty")
     app.pieces[row][col]=app.selectedPiece
     app.selectedPiece=None

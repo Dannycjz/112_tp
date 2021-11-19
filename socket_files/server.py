@@ -14,7 +14,7 @@ Code basically copied from
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 '''
 # Input Local IPV4 Address
-HOST = "172.26.99.23"
+HOST = "172.26.19.215"
 port=5555
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -50,7 +50,7 @@ def client_thread(conn, player, gameId):
     while True:
         try:
             # Try to receive/decode data 
-            data=pickle.loads(conn.recv(2048*2))
+            data=pickle.loads(conn.recv(2048*4))
 
             if gameId in games:
                 game=games[gameId]
@@ -58,10 +58,16 @@ def client_thread(conn, player, gameId):
                 if not data:
                     print("Disconnected")
                     break
-                # elif type(data)==str and data=="get":
-                #     reply=game
+                elif type(data)==str and data=="Updated":
+                    game.setUpdated(player)
+                    print("Updated", player)
+                    print(game.updated)
                 elif type(data)==tuple:
+                    print(data, player)
                     game.updateMove(player, data)
+                    game.resetUpdated(player)
+                    print("Reset requested by:", player)
+                    print(game.updated)
 
                 conn.sendall(pickle.dumps(game))
             else:

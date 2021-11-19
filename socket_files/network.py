@@ -13,7 +13,7 @@ class Network(object):
     '''
     def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HOST= "172.26.99.23"
+        self.HOST= "172.26.19.215"
         self.port=5555
         self.addr=(self.HOST, self.port)
 
@@ -38,7 +38,7 @@ class Network(object):
         # Error handling
         try:
             self.client.send(pickle.dumps(data))
-            recv_data=pickle.loads(self.client.recv(2048*2))
+            recv_data=pickle.loads(self.client.recv(2048*4))
             return recv_data
         # Prints error to terminal
         except socket.error as e:

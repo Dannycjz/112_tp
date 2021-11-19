@@ -10,8 +10,8 @@ from _thread import *
 from game import Game
 
 '''
-Code inspired by
-https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+Code basically copied from
+https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 '''
 # Input Local IPV4 Address
 HOST = "172.26.99.23"
@@ -36,7 +36,9 @@ idCount=0
 
 '''
 Code inspired by 
-https://www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
+Changed the sending/receiving to use pickle
+Changed the data handling to fit my game object
 '''
 def client_thread(conn, player, gameId):
     global idCount
@@ -79,6 +81,10 @@ def client_thread(conn, player, gameId):
     idCount-=1
     conn.close()
 
+'''
+Code basically copied from
+https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
+'''
 # continuously checks for connections 
 while True:
     # aceepts incoming connection

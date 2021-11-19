@@ -1,17 +1,26 @@
 import socket, pickle
 
 '''
-Code inspired by:
+Class basically copied from:
 www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+Changed the data sending/reception to use pickle instead of string encoding/decoding
 '''
-
 class Network(object):
+    '''
+    Function basically copied from:
+    www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+    Removed the self.pos attribute
+    '''
     def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.HOST= "172.26.99.23"
         self.port=5555
         self.addr=(self.HOST, self.port)
 
+    '''
+    Function copied from:
+    www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+    '''
     def connect(self):
         # Error handling
         try:    
@@ -20,6 +29,11 @@ class Network(object):
         except:
             pass
     
+    '''
+    Function inspired by:
+    www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+    Changed data handling to use pickle and not string encoding/decoding
+    '''
     def send(self, data):
         # Error handling
         try:

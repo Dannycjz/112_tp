@@ -58,14 +58,23 @@ def client_thread(conn, player, gameId):
                 if not data:
                     print("Disconnected")
                     break
+                # Updates the updated status 
                 elif type(data)==str and data=="Updated":
                     game.setUpdated(player)
                     print("Updated", player)
                     print(game.updated)
+                # Set the went status for the player if requested
+                elif type(data)==str and data=="setWent":
+                    game.setWent(player)
+                    print(game.getWent(player), player, "Went")
+                # if data is a move
+                # update the move
+                # reset update status so the other player can pull the move
                 elif type(data)==tuple:
                     print(data, player)
                     game.updateMove(player, data)
                     game.resetUpdated(player)
+                    game.resetWent(player)
                     print("Reset requested by:", player)
                     print(game.updated)
 

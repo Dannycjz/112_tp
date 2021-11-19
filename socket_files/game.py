@@ -17,11 +17,14 @@ class Game(object):
         self.id=id
         self.p0move=()
         self.p1move=()
+        self.p0Went=False
+        self.p1Went=False
         self.whiteWins=False
         self.blackWins=False
         self.over=False
         self.ties=0
     
+    # For debugging purposes
     def __repr__(self):
         return str(self.id)
     
@@ -36,6 +39,28 @@ class Game(object):
         else:
             return self.p0move
 
+    # Get Went status
+    def getWent(self, player):
+        if player==0:
+            return self.p0Went
+        else:
+            return self.p1Went
+
+    # Set went status for player
+    def setWent(self, player):
+        if player==0:
+            self.p0Went=True
+        else:
+            self.p1Went=True
+    
+    # Reset went status for player
+    def resetWent(self, player):
+        if player==0:
+            self.p1Went=False
+        else:
+            self.p0Went=False
+
+    # Update the updated list 
     def setUpdated(self, player):
         self.updated[player]=True
     

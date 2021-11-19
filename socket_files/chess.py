@@ -53,20 +53,21 @@ def init_sprites(app):
         app.blackPieces[newPiece]=blackSprite
 
 # Initializes 2D list to store the locations of pieces on board
+# 0 stands for white, 1 stands for black
 def init_pieces():
     pieces=[
-        [("black", "castle"), ("black", "knight"), ("black", "bishop"), 
-        ("black", "queen"), ("black", "king"), ("black", "bishop"), 
-        ("black", "knight"), ("black", "castle")],
-        [("black", "pawn")for i in range(8)], 
-        [("empty", "empty")for i in range(8)], 
-        [("empty", "empty")for i in range(8)], 
-        [("empty", "empty")for i in range(8)], 
-        [("empty", "empty")for i in range(8)], 
-        [("white", "pawn")for i in range(8)], 
-        [("white", "castle"), ("white", "knight"), ("white", "bishop"), 
-        ("white", "queen"), ("white", "king"), ("white", "bishop"), 
-        ("white", "knight"), ("white", "castle")]
+        [(1, "castle"), (1, "knight"), (1, "bishop"), 
+        (1, "queen"), (1, "king"), (1, "bishop"), 
+        (1, "knight"), (1, "castle")],
+        [(1, "pawn")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(0, "pawn")for i in range(8)], 
+        [(0, "castle"), (0, "knight"), (0, "bishop"), 
+        (0, "queen"), (0, "king"), (0, "bishop"), 
+        (0, "knight"), (0, "castle")]
         ]
     return pieces
 
@@ -77,14 +78,14 @@ def update_killzones(app):
             elem=app.pieces[row][col]
             color=elem[0]
             piece=elem[1]
-            if color=="white" or color=="empty":
+            if color==0 or color==None:
                 # Gets all possible threat origins
                 (pawnSet, castleSet, knightSet, 
                 bishopSet, queenSet, kingSet)=blackMoves(app, row, col)
                 # Updates killzone accordingly
                 update_blackKZ(app, pawnSet, castleSet, knightSet, 
                 bishopSet, queenSet, kingSet, row, col)
-            if color=="black" or color=="empty":
+            if color==1 or color==None:
                 # Gets all possible threat origins
                 (pawnSet, castleSet, knightSet, 
                 bishopSet, queenSet, kingSet)=whiteMoves(app, row, col)
@@ -104,7 +105,7 @@ def blackMoves(app, currR, currC):
     kingSet=[]
     for row in range(8):
         for col in range(8):
-            if isValidPawnBackTrack(app, currR, currC, row, col, "black"):
+            if isValidPawnBackTrack(app, currR, currC, row, col, 1):
                 pawnSet.append((row, col))
             if isValidCastleMove(app, currR, currC, row, col):
                 castleSet.append((row, col))
@@ -114,7 +115,7 @@ def blackMoves(app, currR, currC):
                 bishopSet.append((row, col))
             if isValidQueenMove(app, currR, currC, row, col):
                 queenSet.append((row, col))
-            if isValidKingMove(app, currR, currC, row, col, "black"):
+            if isValidKingMove(app, currR, currC, row, col, 1):
                 kingSet.append((row, col))
     return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
 
@@ -128,7 +129,7 @@ def whiteMoves(app, currR, currC):
     kingSet=[]
     for row in range(8):
         for col in range(8):
-            if isValidPawnBackTrack(app, currR, currC, row, col, "white"):
+            if isValidPawnBackTrack(app, currR, currC, row, col, 0):
                 pawnSet.append((row, col))
             if isValidCastleMove(app, currR, currC, row, col):
                 castleSet.append((row, col))
@@ -138,7 +139,7 @@ def whiteMoves(app, currR, currC):
                 bishopSet.append((row, col))
             if isValidQueenMove(app, currR, currC, row, col):
                 queenSet.append((row, col))
-            if isValidKingMove(app, currR, currC, row, col, "white"):
+            if isValidKingMove(app, currR, currC, row, col, 0):
                 kingSet.append((row, col))
     return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
 
@@ -147,32 +148,32 @@ def update_blackKZ(app, pawnSet, castleSet, knightSet,
                 bishopSet, queenSet, kingSet, currR, currC):
     for coord in pawnSet:
         (row, col)=coord
-        if app.pieces[row][col]==("black", "pawn"):
+        if app.pieces[row][col]==(1, "pawn"):
             app.blackKZ[currR][currC]=True
             return
     for coord in castleSet:
         (row, col)=coord
-        if app.pieces[row][col]==("black", "castle"):
+        if app.pieces[row][col]==(1, "castle"):
             app.blackKZ[currR][currC]=True
             return
     for coord in knightSet:
         (row, col)=coord
-        if app.pieces[row][col]==("black", "knight"):
+        if app.pieces[row][col]==(1, "knight"):
             app.blackKZ[currR][currC]=True
             return
     for coord in bishopSet:
         (row, col)=coord
-        if app.pieces[row][col]==("black", "bishop"):
+        if app.pieces[row][col]==(1, "bishop"):
             app.blackKZ[currR][currC]=True
             return
     for coord in queenSet:
         (row, col)=coord
-        if app.pieces[row][col]==("black", "queen"):
+        if app.pieces[row][col]==(1, "queen"):
             app.blackKZ[currR][currC]=True
             return
     for coord in kingSet:
         (row, col)=coord
-        if app.pieces[row][col]==("black", "king"):
+        if app.pieces[row][col]==(1, "king"):
             app.blackKZ[currR][currC]=True
             return
     app.blackKZ[currR][currC]=False
@@ -182,43 +183,43 @@ def update_whiteKZ(app, pawnSet, castleSet, knightSet,
                 bishopSet, queenSet, kingSet, currR, currC):
     for coord in pawnSet:
         (row, col)=coord
-        if app.pieces[row][col]==("white", "pawn"):
+        if app.pieces[row][col]==(0, "pawn"):
             app.whiteKZ[currR][currC]=True
             return
     for coord in castleSet:
         (row, col)=coord
-        if app.pieces[row][col]==("white", "castle"):
+        if app.pieces[row][col]==(0, "castle"):
             app.whiteKZ[currR][currC]=True
             return
     for coord in knightSet:
         (row, col)=coord
-        if app.pieces[row][col]==("white", "knight"):
+        if app.pieces[row][col]==(0, "knight"):
             app.whiteKZ[currR][currC]=True
             return
     for coord in bishopSet:
         (row, col)=coord
-        if app.pieces[row][col]==("white", "bishop"):
+        if app.pieces[row][col]==(0, "bishop"):
             app.whiteKZ[currR][currC]=True
             return
     for coord in queenSet:
         (row, col)=coord
-        if app.pieces[row][col]==("white", "queen"):
+        if app.pieces[row][col]==(0, "queen"):
             app.whiteKZ[currR][currC]=True
             return
     for coord in kingSet:
         (row, col)=coord
-        if app.pieces[row][col]==("white", "king"):
+        if app.pieces[row][col]==(0, "king"):
             app.whiteKZ[currR][currC]=True
             return
     app.whiteKZ[currR][currC]=False
 
 # Backtrack pawn check for killzone updates
 def isValidPawnBackTrack(app, currR, currC, row, col, color):
-    if color=="black":
+    if color==1:
         if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
                 return True
         else: return False
-    elif color=="white":
+    elif color==0:
         if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
             return True
         else: return False
@@ -226,50 +227,58 @@ def isValidPawnBackTrack(app, currR, currC, row, col, color):
 def mousePressed(app, event):
     x=event.x
     y=event.y
-    (row, col)=selectCell(app, x, y)
-    # If user is not currently making a move
-    # Either select a piece or clear moves/outlines
-    if app.makingMove is False:
-        selectPieceToMove(app, row, col)
-    else:
-        if app.game.connected():
-            currR=app.currLoc[0]
-            currC=app.currLoc[1]
-            movePiece(app, row, col, currR, currC)
+    if not app.game.getWent(app.player):
+        (row, col)=selectCell(app, x, y)
+        # If user is not currently making a move
+        # Either select a piece or clear moves/outlines
+        if app.makingMove is False:
+            piece=selectPiece(app, row, col)
+            if piece is None: pass
+            elif piece[0]!=app.player:
+                unselectPiece(app)
+                clearOutlines(app)
+                app.makingMove=False
+            else:
+                updateOutlines(app, app.player)
+                app.makingMove=True
         else:
-            pass
+            if app.game.connected():
+                currR=app.currLoc[0]
+                currC=app.currLoc[1]
+                movePiece(app, row, col, currR, currC)
+            else:
+                pass
+    else:
+        pass
 
-# Select the piece that the user clicked on
-# Or reset if user did not click on a piece
-def selectPieceToMove(app, row, col):
-    elem=selectPiece(app, row, col)
-    if elem!=None:
-        color=elem[0]
-        updateKZOutlines(app, color)
-        updateValidMoves(app)
-    else: 
-        clearValidMoves(app)
-        clearKZOutlines(app)
+# Update board outlines for display
+def updateOutlines(app, player):
+    updateKZOutlines(app, player)
+    updateValidMoves(app)
+
+# Clear all board outlines
+def clearOutlines(app):
+    clearValidMoves(app)
+    clearKZOutlines(app)
 
 # Make the move based on the piece the user selected
 def movePiece(app, row, col, currR, currC):
     if isValidMove(app, row, col):
         app.n.send((currR, currC, row, col))
+        app.n.send("setWent")
         app.updated=False
         makeMove(app, row, col, currR, currC)
-        clearValidMoves(app)
-        clearKZOutlines(app)
+        clearOutlines(app)
     # Clear outlines
     else:
         unselectPiece(app)
-        clearValidMoves(app)
-        clearKZOutlines(app)
+        clearOutlines(app)
 
 # Updates outlines for the killzones
-def updateKZOutlines(app, color):
-    if color=="white":
+def updateKZOutlines(app, player):
+    if player==0:
         app.kzOutlines=copy.deepcopy(app.blackKZ)
-    elif color=="black":
+    elif player==1:
         app.kzOutlines=copy.deepcopy(app.whiteKZ)
 
 # Clears outlines and killzones
@@ -292,7 +301,7 @@ def timerFired(app):
         if move!=():
             (currR, currC, row, col)=move
             print(currR, currC, row, col)
-            selectPieceToMove(app, currR, currC)
+            selectPiece(app, currR, currC)
             makeMove(app, row, col, currR, currC)
             app.n.send("Updated")
         else:
@@ -315,17 +324,16 @@ def unselectPiece(app):
 
 # Selects a chess piece if the user clicks on one
 def selectPiece(app, row, col):
-    if app.pieces[row][col]!=("empty", "empty"):
+    if app.pieces[row][col]!=(None, "empty"):
         app.selectedPiece=app.pieces[row][col]
         app.currLoc=(row, col)
-        app.makingMove=True
         return app.selectedPiece
     else:
         return None
 
 # Moves the selected chess piece to the destination cell
 def makeMove(app, row, col, currR, currC):
-    app.pieces[currR][currC]=("empty", "empty")
+    app.pieces[currR][currC]=(None, "empty")
     app.pieces[row][col]=app.selectedPiece
     app.selectedPiece=None
     app.currLoc=None
@@ -354,9 +362,9 @@ def isValidMove(app, row, col):
     if app.pieces[row][col][0]==color: return False
     # Checks valid moves based on piece type
     if piece=="pawn":
-        if color=="black" and currR==1:
+        if color==1 and currR==1:
             return isValidStartPawnMove(app, currR, currC, row, col, color)
-        elif color=="white" and currR==6:
+        elif color==0 and currR==6:
             return isValidStartPawnMove(app, currR, currC, row, col, color)
         else:
             return isValidPawnMove(app, currR, currC, row, col, color)
@@ -373,9 +381,9 @@ def isValidMove(app, row, col):
 
 # Checks if [row][col] is a valid start pawn move from [currR][currC]
 def isValidStartPawnMove(app, currR, currC, row, col, color):
-    if color=="black":
+    if color==1:
         # Empty cells move set
-        if app.pieces[row][col]==("empty", "empty"):
+        if app.pieces[row][col]==(None, "empty"):
             if (col==currC) and ((currR==row-1)or (currR==row-2)):
                 return True
             else: return False
@@ -386,7 +394,7 @@ def isValidStartPawnMove(app, currR, currC, row, col, color):
             else: return False
     else:
         # Empty cells move set
-        if app.pieces[row][col]==("empty", "empty"):
+        if app.pieces[row][col]==(None, "empty"):
             if (col==currC) and ((currR==row+1)or (currR==row+2)):
                 return True
             else: return False
@@ -398,9 +406,9 @@ def isValidStartPawnMove(app, currR, currC, row, col, color):
 
 # Checks if [row][col] is a valid normal pawn move from [currR][currC]
 def isValidPawnMove(app, currR, currC, row, col, color):
-    if color=="black":
+    if color==1:
         # Empty cells move set
-        if app.pieces[row][col]==("empty", "empty"):
+        if app.pieces[row][col]==(None, "empty"):
             if (col==currC) and (currR==row-1):
                 return True
             else: return False
@@ -411,7 +419,7 @@ def isValidPawnMove(app, currR, currC, row, col, color):
             else: return False
     else:
         # Empty cells move set
-        if app.pieces[row][col]==("empty", "empty"):
+        if app.pieces[row][col]==(None, "empty"):
             if (col==currC) and (currR==row+1):
                 return True
             else: return False
@@ -469,10 +477,10 @@ def isValidQueenMove(app, currR, currC, row, col):
 # Checks if [row][col] is a valid king move from [currR][currC]
 def isValidKingMove(app, currR, currC, row, col, color):
     # Checks if destination is in killzone
-    if color=="black":
+    if color==1:
         if app.whiteKZ[row][col] is True:
             return False
-    elif color=="white":
+    elif color==0:
         if app.blackKZ[row][col] is True:
             return False
     if (((currR+1==row) or (currR-1==row) or (currR==row)) 
@@ -489,14 +497,14 @@ def nearestPieceLDiag(app, currR, currC):
     i=index-1
     while i>=0:
         (row, col)=diag[i]
-        if app.pieces[row][col]!=("empty", "empty"):
+        if app.pieces[row][col]!=(None, "empty"):
             left=i
             break
         i-=1
     i=index+1
     while i<len(diag):
         (row, col)=diag[i]
-        if app.pieces[row][col]!=("empty", "empty"):
+        if app.pieces[row][col]!=(None, "empty"):
             right=i
             break
         i+=1
@@ -511,14 +519,14 @@ def nearestPieceRDiag(app, currR, currC):
     i=index-1
     while i>=0:
         (row, col)=diag[i]
-        if app.pieces[row][col]!=("empty", "empty"):
+        if app.pieces[row][col]!=(None, "empty"):
             left=i
             break
         i-=1
     i=index+1
     while i<len(diag):
         (row, col)=diag[i]
-        if app.pieces[row][col]!=("empty", "empty"):
+        if app.pieces[row][col]!=(None, "empty"):
             right=i
             break
         i+=1
@@ -570,13 +578,13 @@ def nearestPieceOnRow(app, currR, currC):
     leftC=0
     i=currC+1
     while i<8:
-        if app.pieces[currR][i]!=("empty", "empty"):
+        if app.pieces[currR][i]!=(None, "empty"):
             rightC=i
             break
         i+=1
     i=currC-1
     while i>=0:
-        if app.pieces[currR][i]!=("empty", "empty"):
+        if app.pieces[currR][i]!=(None, "empty"):
             leftC=i
             break
         i-=1
@@ -588,13 +596,13 @@ def nearestPieceOnCol(app, currR, currC):
     botR=0
     i=currR+1
     while i<8:
-        if app.pieces[i][currC]!=("empty", "empty"):
+        if app.pieces[i][currC]!=(None, "empty"):
             topR=i
             break
         i+=1
     i=currR-1
     while i>=0:
-        if app.pieces[i][currC]!=("empty", "empty"):
+        if app.pieces[i][currC]!=(None, "empty"):
             botR=i
             break
         i-=1
@@ -648,9 +656,9 @@ def loadPieces(app, canvas):
         for col in range(8):
             (x, y)=getCellCenter(app, row, col)
             (color, piece)=app.pieces[row][col]
-            if color=="black":
+            if color==1:
                 sprite=app.blackPieces[piece]
-            elif color=="white":
+            elif color==0:
                 sprite=app.whitePieces[piece]
             else:
                 continue

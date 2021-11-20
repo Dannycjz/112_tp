@@ -10,7 +10,7 @@ def appStarted(app):
     # Initates boolean variable to detect whether a king is being checked
     app.check=False
     # Initiates a variable to store the location of the king
-    app.kingLoc=initiateKingLoc(app)
+    app.kingLoc=initiateKingLoc(app, app.player)
     app.pieces=init_pieces()
     # Initiates 2D lists to represent killzones
     app.whiteKZ=[[False, False, False, False, 
@@ -41,10 +41,10 @@ def appStarted(app):
     app.updated=False
 
 # Initiates the correct king location based on which player we are
-def initiateKingLoc(app):
-    if app.player==0:
+def initiateKingLoc(app, player):
+    if player==0:
         return (7, 4)
-    elif app.player==1:
+    elif player==1:
         return (0, 4)
 
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
@@ -256,11 +256,31 @@ def mousePressed(app, event):
             if app.game.connected():
                 currR=app.currLoc[0]
                 currC=app.currLoc[1]
-                movePiece(app, row, col, currR, currC)
+                if not isChecked(app):
+                    movePiece(app, row, col, currR, currC)
+                else:
+                    if isGoodMove(app, row, col, currR, currC):
+                        selectPiece(app, currR, currC)
+                        movePiece(app, row, col, currR, currC)
+                    else:
+                        unselectPiece(app)
+                        clearOutlines(app)
             else:
                 pass
     else:
         pass
+
+# Try the move to see if it will break the check
+def isGoodMove(app, row, col, currR, currC):
+    makeMove(app, row, col, currR, currC)
+    update_killzones(app)
+    if isChecked(app):
+        result=False
+    else:
+        result=True
+    selectPiece(app, row, col)
+    makeMove(app, currR, currC, row, col)
+    return result
 
 # Update board outlines for display
 def updateOutlines(app, player):
@@ -272,7 +292,20 @@ def clearOutlines(app):
     clearValidMoves(app)
     clearKZOutlines(app)
 
-# Make the move based on the piece the user selected
+# Moves the selected chess piece to the destination cell
+def makeMove(app, row, col, currR, currC):
+    # Update the king's location if the player is moving his king
+    if app.selectedPiece[0]==app.player and app.selectedPiece[1]=="king":
+        app.kingLoc=(row, col)
+    app.pieces[currR][currC]=(None, "empty")
+    app.pieces[row][col]=app.selectedPiece
+    update_killzones(app)
+    app.selectedPiece=None
+    app.currLoc=None
+    app.makingMove=False
+
+# Make the move based on the piece the user selected 
+# and send data to the server
 def movePiece(app, row, col, currR, currC):
     if isValidMove(app, row, col):
         app.n.send((currR, currC, row, col))
@@ -299,7 +332,7 @@ def clearKZOutlines(app):
             app.kzOutlines[row][col]=False
 
 def timerFired(app):
-    update_killzones(app)
+    # update_killzones(app)
     try:
     # Tries to get game from server
         app.game=app.n.send("get")
@@ -314,6 +347,7 @@ def timerFired(app):
             print(currR, currC, row, col)
             selectPiece(app, currR, currC)
             makeMove(app, row, col, currR, currC)
+            update_killzones(app)
             app.n.send("Updated")
         else:
             pass
@@ -353,17 +387,6 @@ def selectPiece(app, row, col):
         return app.selectedPiece
     else:
         return None
-
-# Moves the selected chess piece to the destination cell
-def makeMove(app, row, col, currR, currC):
-    # Update the king's location if the player is moving his king
-    if app.selectedPiece[0]==app.player and app.selectedPiece[1]=="king":
-        app.kingLoc=(row, col)
-    app.pieces[currR][currC]=(None, "empty")
-    app.pieces[row][col]=app.selectedPiece
-    app.selectedPiece=None
-    app.currLoc=None
-    app.makingMove=False
 
 # Clear valid moves
 def clearValidMoves(app):

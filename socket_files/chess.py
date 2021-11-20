@@ -7,6 +7,10 @@ def appStarted(app):
     app.player=int(app.n.connect())
     app.game=None
     app.board=[[]for i in range(8)]
+    # Initates boolean variable to detect whether a king is being checked
+    app.check=False
+    # Initiates a variable to store the location of the king
+    app.kingLoc=initiateKingLoc(app)
     app.pieces=init_pieces()
     # Initiates 2D lists to represent killzones
     app.whiteKZ=[[False, False, False, False, 
@@ -35,6 +39,13 @@ def appStarted(app):
     app.currLoc=None
     # Initiates a variable that keeps track of whether the local board is updated
     app.updated=False
+
+# Initiates the correct king location based on which player we are
+def initiateKingLoc(app):
+    if app.player==0:
+        return (7, 4)
+    elif app.player==1:
+        return (0, 4)
 
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
 # Loads chess sprites and stores them in dicts
@@ -306,6 +317,18 @@ def timerFired(app):
             app.n.send("Updated")
         else:
             pass
+    # Checks if our king is being checked
+    if isChecked(app):
+        print("You are checked")
+
+def isChecked(app):
+    (row, col)=app.kingLoc
+    if app.player==0:
+        if app.blackKZ[row][col]: return True
+        else: return False
+    elif app.player==1:
+        if app.whiteKZ[row][col]: return True
+        else: return False
 
 # Selects a cell on the chessboard
 def selectCell(app, x, y):
@@ -333,6 +356,9 @@ def selectPiece(app, row, col):
 
 # Moves the selected chess piece to the destination cell
 def makeMove(app, row, col, currR, currC):
+    # Update the king's location if the player is moving his king
+    if app.selectedPiece[0]==app.player and app.selectedPiece[1]=="king":
+        app.kingLoc=(row, col)
     app.pieces[currR][currC]=(None, "empty")
     app.pieces[row][col]=app.selectedPiece
     app.selectedPiece=None

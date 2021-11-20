@@ -9,6 +9,7 @@ def appStarted(app):
     app.board=[[]for i in range(8)]
     # Initates boolean variable to detect whether a king is being checked
     app.check=False
+    app.checkMate=False
     # Initiates a variable to store the location of the king
     app.kingLoc=initiateKingLoc(app, app.player)
     app.pieces=init_pieces()
@@ -31,12 +32,10 @@ def appStarted(app):
     # Initiates 2D list to represent killzones visually
     app.kzOutlines=[[False, False, False, False, 
                     False, False, False, False]for i in range(8)]
-    # Initiates a variable that stores which piece is selected
-    app.selectedPiece=None
     # Initiates a variable that indicates whether a player is making a move
     app.makingMove=False
     # Initiates a variable that stores the current location of the selected piece
-    app.currLoc=None
+    app.oldLoc=None
     # Initiates a variable that keeps track of whether the local board is updated
     app.updated=False
 
@@ -238,7 +237,7 @@ def isValidPawnBackTrack(app, currR, currC, row, col, color):
 def mousePressed(app, event):
     x=event.x
     y=event.y
-    if not app.game.getWent(app.player):
+    if not app.game.getWent(app.player) and not app.checkMate:
         (row, col)=selectCell(app, x, y)
         # If user is not currently making a move
         # Either select a piece or clear moves/outlines
@@ -250,12 +249,12 @@ def mousePressed(app, event):
                 clearOutlines(app)
                 app.makingMove=False
             else:
-                updateOutlines(app, app.player)
+                updateOutlines(app, app.player, row, col)
                 app.makingMove=True
         else:
             if app.game.connected():
-                currR=app.currLoc[0]
-                currC=app.currLoc[1]
+                currR=app.oldLoc[0]
+                currC=app.oldLoc[1]
                 if not isChecked(app):
                     movePiece(app, row, col, currR, currC)
                 else:
@@ -272,20 +271,35 @@ def mousePressed(app, event):
 
 # Try the move to see if it will break the check
 def isGoodMove(app, row, col, currR, currC):
-    makeMove(app, row, col, currR, currC)
+    if isValidMove(app, row, col, currR, currC):
+        return tryMove(app, row, col, currR, currC)
+    else: return False
+
+def tryMove(app, row, col, currR, currC):
+    piece=app.pieces[currR][currC]
+    # Update the king's location if the player is moving his king
+    if piece[0]==app.player and piece[1]=="king":
+        app.kingLoc=(row, col)
+    app.pieces[currR][currC]=(None, "empty")
+    app.pieces[row][col]=piece
     update_killzones(app)
     if isChecked(app):
         result=False
     else:
         result=True
-    selectPiece(app, row, col)
-    makeMove(app, currR, currC, row, col)
+    # Reset the move
+    if piece[0]==app.player and piece[1]=="king":
+        app.kingLoc=(currR, currC)
+    app.pieces[row][col]=(None, "empty")
+    app.pieces[currR][currC]=piece
+    update_killzones(app)
+    print("Move tried:", currR, currC, row, col, result)
     return result
 
 # Update board outlines for display
-def updateOutlines(app, player):
+def updateOutlines(app, player, currR, currC):
     updateKZOutlines(app, player)
-    updateValidMoves(app)
+    updateValidMoves(app, currR, currC)
 
 # Clear all board outlines
 def clearOutlines(app):
@@ -294,20 +308,20 @@ def clearOutlines(app):
 
 # Moves the selected chess piece to the destination cell
 def makeMove(app, row, col, currR, currC):
+    piece=app.pieces[currR][currC]
     # Update the king's location if the player is moving his king
-    if app.selectedPiece[0]==app.player and app.selectedPiece[1]=="king":
+    if piece[0]==app.player and piece[1]=="king":
         app.kingLoc=(row, col)
     app.pieces[currR][currC]=(None, "empty")
-    app.pieces[row][col]=app.selectedPiece
+    app.pieces[row][col]=piece
     update_killzones(app)
-    app.selectedPiece=None
-    app.currLoc=None
+    app.oldLoc=None
     app.makingMove=False
 
 # Make the move based on the piece the user selected 
 # and send data to the server
 def movePiece(app, row, col, currR, currC):
-    if isValidMove(app, row, col):
+    if isValidMove(app, row, col, currR, currC):
         app.n.send((currR, currC, row, col))
         app.n.send("setWent")
         app.updated=False
@@ -315,6 +329,7 @@ def movePiece(app, row, col, currR, currC):
         clearOutlines(app)
     # Clear outlines
     else:
+        print("Not a valid move")
         unselectPiece(app)
         clearOutlines(app)
 
@@ -351,10 +366,36 @@ def timerFired(app):
             app.n.send("Updated")
         else:
             pass
-    # Checks if our king is being checked
-    if isChecked(app):
-        print("You are checked")
+    # Checks if there is a checkmate
+    if checkMate(app):
+        app.checkMate=True
+        print("CheckMate")
 
+# Returns True if there is a move that breaks the check
+# False otherwise
+def checkMate(app):
+    if app.checkMate: return True
+    else:
+        if isChecked(app):
+            for row in range(8):
+                for col in range(8):
+                    if app.pieces[row][col][0]==app.player:
+                        if checkMovesFromRowCol(app, row, col):
+                            return False
+            return True
+        else:
+            return False
+
+# Returns True if there is a move that breaks the check from [currR][currC]
+# False otherwise
+def checkMovesFromRowCol(app, currR, currC):
+    for row in range(8):
+        for col in range(8):
+            if isGoodMove(app, row, col, currR, currC):
+                return True
+    return False
+
+# Checks if the player's king is being checked
 def isChecked(app):
     (row, col)=app.kingLoc
     if app.player==0:
@@ -374,17 +415,15 @@ def selectCell(app, x, y):
 
 # Unselect the selected piece
 def unselectPiece(app):
-    app.selectedPiece=None
-    app.currLoc=None
-    app.selectedPiece=None
+    app.oldLoc=None
     app.makingMove=False
 
 # Selects a chess piece if the user clicks on one
 def selectPiece(app, row, col):
     if app.pieces[row][col]!=(None, "empty"):
-        app.selectedPiece=app.pieces[row][col]
-        app.currLoc=(row, col)
-        return app.selectedPiece
+        piece=app.pieces[row][col]
+        app.oldLoc=(row, col)
+        return piece
     else:
         return None
 
@@ -395,18 +434,16 @@ def clearValidMoves(app):
             app.validMoves[row][col]=False
 
 # Updates valid moves for selected piece in [currR][currC]
-def updateValidMoves(app):
+def updateValidMoves(app, currR, currC):
     for row in range(8):
         for col in range(8):
-            if isValidMove(app, row, col):
+            if isValidMove(app, row, col, currR, currC):
                 app.validMoves[row][col]=True
 
 # Checks if [row][col] is a valid move from [currR][currC]
-def isValidMove(app, row, col):
-    currR=app.currLoc[0]
-    currC=app.currLoc[1]
-    color=app.selectedPiece[0]
-    piece=app.selectedPiece[1]
+def isValidMove(app, row, col, currR, currC):
+    color=app.pieces[currR][currC][0]
+    piece=app.pieces[currR][currC][1]
     # Checks for friendly piece collision
     if app.pieces[row][col][0]==color: return False
     # Checks valid moves based on piece type

@@ -8,12 +8,33 @@ from network import Network
 
 def landingPage_redrawAll(app, canvas):
     font = 'Arial 26 bold'
+    btnSize=200
+    btnX0=(app.width/2)-(btnSize/2)
+    btnY0=(app.height/2)+100
+    btnX1=btnX0+btnSize
+    btnY1=btnY0+btnSize
+    btnCenterX=(btnX0+btnX1)/2
+    btnCenterY=(btnY0+btnY1)/2
     canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font=font)
+    canvas.create_rectangle(btnX0, btnY0, btnX1, btnY1, fill="grey")
+    canvas.create_text(btnCenterX, btnCenterY, text='Connect', font=font)
+
+def landingPage_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    btnSize=200
+    btnX0=app.width/2
+    btnY0=(app.height/2)+100
+    btnX1=btnX0+btnSize
+    btnY1=btnY0+btnSize
+    if (x in range(int(btnX0), int(btnX1))) and (y in range(int(btnY0), int(btnY1))):
+        app.player=int(app.n.connect())
+        app.kingLoc=initiateKingLoc(app, app.player)
+        app.mode="gameMode"
+    else:pass
 
 def landingPage_keyPressed(app, event):
-    app.player=int(app.n.connect())
-    app.kingLoc=initiateKingLoc(app, app.player)
-    app.mode="gameMode"
+    pass
 
 #######################################################
 # Disconnected Page #

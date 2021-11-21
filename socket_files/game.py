@@ -19,8 +19,7 @@ class Game(object):
         self.p1move=()
         self.p0Went=False
         self.p1Went=False
-        self.whiteWins=False
-        self.blackWins=False
+        self.winner=None
         self.over=False
     
     # For debugging purposes
@@ -89,6 +88,12 @@ class Game(object):
     def connected(self):
         return self.ready
 
-    def winner(self):
-        pass
+    def setWinner(self, player):
+        if player==0:
+            self.winner=1
+        else:
+            self.winner=0
+    
+    def setGameOver(self):
+        self.over=True
     

@@ -67,6 +67,10 @@ def client_thread(conn, player, gameId):
                 elif type(data)==str and data=="setWent":
                     game.setWent(player)
                     print(game.getWent(player), player, "Went")
+                elif type(data)==str and data=="Checkmate":
+                    game.setGameOver()
+                    game.setWinner(player)
+                    print(player, "just lost")
                 # if data is a move
                 # update the move
                 # reset update status so the other player can pull the move

@@ -2,23 +2,150 @@ import tkinter, pickle
 from cmu_112_graphics import *
 from network import Network
 
+#######################################################
+# Landing Page #
+#######################################################
+
+def landingPage_redrawAll(app, canvas):
+    font = 'Arial 26 bold'
+    canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font=font)
+
+def landingPage_keyPressed(app, event):
+    app.player=int(app.n.connect())
+    app.kingLoc=initiateKingLoc(app, app.player)
+    app.mode="gameMode"
+
+#######################################################
+# Disconnected Page #
+#######################################################
+
+def disconnected_redrawAll(app, canvas):
+    font = 'Arial 26 bold'
+    canvas.create_text(app.width/2, app.height/2, text='Your opponent disconnected, closing the game now', font=font)
+
+def disconnected_keyPressed(app, event):
+    pass
+
+#######################################################
+# Victory Page #
+#######################################################
+
+def victory_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+    font = 'Arial 26 bold'
+    canvas.create_text(950, 200, text='You won!', font=font)
+
+#######################################################
+# Defeat Page #
+#######################################################
+
+def defeat_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+    font = 'Arial 26 bold'
+    canvas.create_text(950, 200, text='You lost!', font=font)
+
+#######################################################
+# Game Mode #
+#######################################################
+
+def gameMode_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    if not app.game.getWent(app.player) and not app.checkMate:
+        cell=selectCell(app, x, y)
+        if cell!=None:
+            (row, col)=cell
+            # If user is not currently making a move
+            # Either select a piece or clear moves/outlines
+            if app.makingMove is False:
+                piece=selectPiece(app, row, col)
+                if piece is None: pass
+                elif piece[0]!=app.player:
+                    unselectPiece(app)
+                    clearOutlines(app)
+                    app.makingMove=False
+                else:
+                    updateOutlines(app, app.player, row, col)
+                    app.makingMove=True
+            else:
+                if app.game.connected():
+                    currR=app.oldLoc[0]
+                    currC=app.oldLoc[1]
+                    if not isChecked(app):
+                        movePiece(app, row, col, currR, currC)
+                    else:
+                        if isGoodMove(app, row, col, currR, currC):
+                            selectPiece(app, currR, currC)
+                            movePiece(app, row, col, currR, currC)
+                        else:
+                            unselectPiece(app)
+                            clearOutlines(app)
+                else:
+                    pass
+        else:
+            pass
+    else:
+        pass
+
+def gameMode_timerFired(app):
+    # update_killzones(app)
+    try:
+    # Tries to get game from server
+        app.game=app.n.send("get")
+    except:
+        app.mode="disconnected"
+    if app.game.over:
+        if app.game.winner==app.player:
+            app.mode="victory"
+        else:
+            app.mode="defeat"
+    elif not app.game.updated[app.player]:
+        # Get the move and make the move on local board
+        move=app.game.getMove(app.player)
+        if move!=():
+            (currR, currC, row, col)=move
+            selectPiece(app, currR, currC)
+            makeMove(app, row, col, currR, currC)
+            update_killzones(app)
+            # Checks if there is a checkmate
+            if checkMate(app):
+                app.checkMate=True
+                app.n.send("Checkmate")
+                app.mode="defeat"
+                print("CheckMate")
+            app.n.send("Updated")
+            print("Your Turn")
+        else:
+            pass
+
+def gameMode_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+
+#######################################################
+# Main App #
+#######################################################
+
 def appStarted(app):
     app.n=Network()
-    app.player=int(app.n.connect())
+    app.player=None
     app.game=None
+    app.mode = 'landingPage'
     app.board=[[]for i in range(8)]
     # Initates boolean variable to detect whether a king is being checked
     app.check=False
     app.checkMate=False
     # Initiates a variable to store the location of the king
-    app.kingLoc=initiateKingLoc(app, app.player)
-    app.pieces=init_pieces()
+    app.kingLoc=None 
+    app.pieces=init_piece()
     # Initiates 2D lists to represent killzones
     app.whiteKZ=[[False, False, False, False, 
                 False, False, False, False]for i in range(8)]
     app.blackKZ=[[False, False, False, False, 
                 False, False, False, False]for i in range(8)]
-    app.cellSize=app.width/8
+    app.cellSize=app.height/8
     imageUrl="http://clipart-library.com/images/pcqrGKzLi.png"
     #imageUrl="https://www.clipartmax.com/png/middle/455-4559543_chess-pieces-sprite-chess-pieces-sprite-sheet.png"
     app.chessSprites=app.loadImage(imageUrl)
@@ -39,7 +166,7 @@ def appStarted(app):
     # Initiates a variable that keeps track of whether the local board is updated
     app.updated=False
 
-# Initiates the correct king location based on which player we are
+    # Initiates the correct king location based on which player we are
 def initiateKingLoc(app, player):
     if player==0:
         return (7, 4)
@@ -64,7 +191,7 @@ def init_sprites(app):
 
 # Initializes 2D list to store the locations of pieces on board
 # 0 stands for white, 1 stands for black
-def init_pieces():
+def init_piece():
     pieces=[
         [(1, "castle"), (1, "knight"), (1, "bishop"), 
         (1, "queen"), (1, "king"), (1, "bishop"), 
@@ -231,41 +358,6 @@ def isValidPawnBackTrack(app, currR, currC, row, col, color):
         if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
             return True
         else: return False
-            
-def mousePressed(app, event):
-    x=event.x
-    y=event.y
-    if not app.game.getWent(app.player) and not app.checkMate:
-        (row, col)=selectCell(app, x, y)
-        # If user is not currently making a move
-        # Either select a piece or clear moves/outlines
-        if app.makingMove is False:
-            piece=selectPiece(app, row, col)
-            if piece is None: pass
-            elif piece[0]!=app.player:
-                unselectPiece(app)
-                clearOutlines(app)
-                app.makingMove=False
-            else:
-                updateOutlines(app, app.player, row, col)
-                app.makingMove=True
-        else:
-            if app.game.connected():
-                currR=app.oldLoc[0]
-                currC=app.oldLoc[1]
-                if not isChecked(app):
-                    movePiece(app, row, col, currR, currC)
-                else:
-                    if isGoodMove(app, row, col, currR, currC):
-                        selectPiece(app, currR, currC)
-                        movePiece(app, row, col, currR, currC)
-                    else:
-                        unselectPiece(app)
-                        clearOutlines(app)
-            else:
-                pass
-    else:
-        pass
 
 # Try the move to see if it will break the check
 def isGoodMove(app, row, col, currR, currC):
@@ -344,31 +436,6 @@ def clearKZOutlines(app):
         for col in range(8):
             app.kzOutlines[row][col]=False
 
-def timerFired(app):
-    # update_killzones(app)
-    try:
-    # Tries to get game from server
-        app.game=app.n.send("get")
-    except:
-        print("Couldn't get game")
-        pass
-    if not app.game.updated[app.player]:
-        # Get the move and make the move on local board
-        move=app.game.getMove(app.player)
-        if move!=():
-            (currR, currC, row, col)=move
-            selectPiece(app, currR, currC)
-            makeMove(app, row, col, currR, currC)
-            update_killzones(app)
-            # Checks if there is a checkmate
-            if checkMate(app):
-                app.checkMate=True
-                print("CheckMate")
-            app.n.send("Updated")
-            print("Your Turn")
-        else:
-            pass
-
 # Returns True if there is a move that breaks the check
 # False otherwise
 def checkMate(app):
@@ -410,6 +477,7 @@ def selectCell(app, x, y):
             (x0, y0, x1, y1) = getCellBounds(app, row, col)
             if (x in range(int(x0), int(x1))) and (y in range(int(y0), int(y1))):
                 return (row, col)
+    return None
 
 # Unselect the selected piece
 def unselectPiece(app):
@@ -522,7 +590,7 @@ def isValidCastleMove(app, currR, currC, row, col, color):
         # Gets the furthest possible column positions
         leftC, rightC=nearestPieceOnRow(app, currR, currC)
         # Gets the furthest possible row positions
-        topR, botR=nearestPieceOnCol(app, currR, currC)
+        topR, botR=nearestPieceOncol(app, currR, currC)
         if col==currC:
             if botR<=row<=topR:
                 return True
@@ -689,7 +757,7 @@ def nearestPieceOnRow(app, currR, currC):
     return leftC, rightC
 
 # Returns the col of the closest piece to [currR][currC] on the same row
-def nearestPieceOnCol(app, currR, currC):
+def nearestPieceOncol(app, currR, currC):
     topR=7
     botR=0
     i=currR+1
@@ -762,12 +830,8 @@ def loadPieces(app, canvas):
                 continue
             canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
 
-def redrawAll(app, canvas):
-    drawBoard(app, canvas)
-    loadPieces(app, canvas)
-
 def chessAnimation():
-    runApp(width=800, height=800)
+    runApp(width=1000, height=800)
 
 if __name__=="__main__":
     chessAnimation()

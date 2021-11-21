@@ -73,7 +73,17 @@ def client_thread(conn, player, gameId):
                     print(player, "just lost")
                 elif type(data)==str and data=="EnPassant":
                     game.setEnPassant(player)
+                    game.resetCastling()
                     print(player, "just got en passanted")
+                elif type(data)==str and data=="resetSpecialMoves":
+                    game.resetCastling()
+                    game.resetEnPassant()
+                elif type(data)==str and data=="RightCastling":
+                    game.setRightCastling(player)
+                    game.resetEnPassant()
+                elif type(data)==str and data=="LeftCastling":
+                    game.setLeftCastling(player)
+                    game.resetEnPassant()
                 # if data is a move
                 # update the move
                 # reset update status so the other player can pull the move

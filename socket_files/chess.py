@@ -42,7 +42,8 @@ def landingPage_keyPressed(app, event):
 
 def disconnected_redrawAll(app, canvas):
     font = 'Arial 26 bold'
-    canvas.create_text(app.width/2, app.height/2, text='Your opponent disconnected, closing the game now', font=font)
+    canvas.create_text(app.width/2, app.height/2, 
+                        text='Your opponent disconnected, closing the game now', font=font)
 
 def disconnected_keyPressed(app, event):
     pass
@@ -122,6 +123,7 @@ def gameMode_timerFired(app):
             app.mode="victory"
         else:
             app.mode="defeat"
+    # If local board is not up to date
     elif not app.game.updated[app.player]:
         # Get the move and make the move on local board
         move=app.game.getMove(app.player)
@@ -129,10 +131,22 @@ def gameMode_timerFired(app):
             (currR, currC, row, col)=move
             piece=selectPiece(app, currR, currC)
             makeMove(app, row, col, currR, currC)
+            status=app.game.getCastlingStatus(app.player)
             # Delete the piece if En Passant
             if app.game.getEnPassant(app.player):
-                print("deleting", currR, col)
-                app.pieces[currR][col]=(None, "emtpy")
+                app.pieces[currR][col]=(None, "empty")
+            # If the other player just made a castling move:
+            elif status[0]:
+                # Move the rook for right castling
+                if status[1]=="right":
+                    rook=app.pieces[row][col+1]
+                    app.pieces[row][col-1]=rook
+                    app.pieces[row][col+1]=(None, "empty")
+                # Move the rook for left castling
+                elif status[1]=="left":
+                    rook=app.pieces[row][col-2]
+                    app.pieces[row][col+1]=rook
+                    app.pieces[row][col-2]=(None, "empty")
             app.lastMove=(piece, currR, currC, row, col)
             update_killzones(app)
             # Checks if there is a checkmate
@@ -151,7 +165,7 @@ def gameMode_redrawAll(app, canvas):
     loadPieces(app, canvas)
 
 #######################################################
-# Main App #
+# # Main App #
 #######################################################
 
 def appStarted(app):
@@ -163,6 +177,12 @@ def appStarted(app):
     # Initates boolean variable to detect whether a king is being checked
     app.check=False
     app.checkMate=False
+    # Initiates variables to check for castling eligibility
+    app.rightCastling=True
+    app.leftCastling=True
+    app.leftRookMoved=False
+    app.rightRookMoved=False
+    app.kingMoved=False
     # Initiates a variable to store the location of the king
     app.kingLoc=None 
     app.pieces=init_piece()
@@ -278,7 +298,7 @@ def blackMoves(app, currR, currC):
                     bishopSet.append((row, col))
                 if isValidQueenMove(app, currR, currC, row, col, 1):
                     queenSet.append((row, col))
-                if isValidKingMove(app, currR, currC, row, col, 1):
+                if isValidKingBackTrack(app, currR, currC, row, col, 1):
                     kingSet.append((row, col))
     return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
 
@@ -302,7 +322,7 @@ def whiteMoves(app, currR, currC):
                 bishopSet.append((row, col))
             if isValidQueenMove(app, currR, currC, row, col, 0):
                 queenSet.append((row, col))
-            if isValidKingMove(app, currR, currC, row, col, 0):
+            if isValidKingBackTrack(app, currR, currC, row, col, 0):
                 kingSet.append((row, col))
     return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
 
@@ -376,6 +396,16 @@ def update_whiteKZ(app, pawnSet, castleSet, knightSet,
             return
     app.whiteKZ[currR][currC]=False
 
+# Updates castling eligibility
+def updateCastlingEligibility(app):
+    if app.kingMoved:
+        app.rightCastling=False
+        app.leftCastling=False
+    elif app.leftRookMoved:
+        app.leftCastling=False
+    elif app.rightRookMoved:
+        app.rightCastling=False
+
 # Backtrack pawn check for killzone updates
 def isValidPawnBackTrack(app, currR, currC, row, col, color):
     if color==1:
@@ -434,9 +464,21 @@ def makeMove(app, row, col, currR, currC):
     # Update the king's location if the player is moving his king
     if piece[0]==app.player and piece[1]=="king":
         app.kingLoc=(row, col)
+        app.kingMoved=True
+    elif piece[0]==app.player and piece[1]=="castle" and piece[0]==0:
+        if currC==0:
+            app.leftRookMoved=True
+        elif currC==7:
+            app.rightRookMoved=True
+    elif piece[0]==app.player and piece[1]=="castle" and piece[0]==1:
+        if currC==0:
+            app.rightRookMoved=True
+        elif currC==7:
+            app.leftRookMoved=True
     app.pieces[currR][currC]=(None, "empty")
     app.pieces[row][col]=piece
     update_killzones(app)
+    updateCastlingEligibility(app)
     app.oldLoc=None
     app.makingMove=False
 
@@ -447,13 +489,29 @@ def movePiece(app, row, col, currR, currC):
         app.n.send((currR, currC, row, col))
         app.n.send("setWent")
         app.updated=False
+        # En Passant
         if ((app.pieces[currR][currC][1]=="pawn") and 
-        (col!=currC) and (app.pieces[row][col][0]==None)):
-            # Kill the piece 
+            (col!=currC) and 
+            (app.pieces[row][col][0]==None)):
+            # Kill the piece during an En Passant
             app.pieces[currR][col]=(None, "empty")
             print("EnPassant at:", currR, currC, row, col)
             app.n.send("EnPassant")
+        elif app.pieces[currR][currC][1]=="king":
+            # Moves the rook in right castling
+            if (row==currR) and (col==currC+2):
+                rook=app.pieces[row][col+1]
+                app.pieces[row][col-1]=rook
+                app.pieces[row][col+1]=(None, "empty")
+                app.n.send("RightCastling")
+            # Moves the rook in left castling
+            elif (row==currR) and (col==currC-2):
+                rook=app.pieces[row][col-2]
+                app.pieces[row][col+1]=rook
+                app.pieces[row][col-2]=(None, "empty")
+                app.n.send("LeftCastling")
         makeMove(app, row, col, currR, currC)
+        app.n.send("resetSpecialMoves")
         clearOutlines(app)
     # Clear outlines
     else:
@@ -611,13 +669,10 @@ def isValidPawnMove(app, currR, currC, row, col, color):
                         if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
                             return True
                         else: 
-                            print("not valid en passant move")
                             return False
                     else: 
-                        print("not eligible for enpassant")
                         return False
                 else:
-                    print("last move was none")
                     return False
         # Enemy eating movement set
         else:
@@ -639,18 +694,9 @@ def isValidPawnMove(app, currR, currC, row, col, color):
                         (originR==1) and (dRow==3) and ((originC==currC+1) or (originC==currC-1))):
                         if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
                             return True
-                        else: 
-                            print(currR, currC, row, col)
-                            print("not valid en passant move")
-                            return False
-                    else:
-                        print("piece eat:",originR, originC, dRow, dCol)
-                        print("my pawn move:",currR, currC, row, col)
-                        print("not eligible for enpassant")
-                        return False
-                else: 
-                    print("last move was none")
-                    return False
+                        else: return False
+                    else:return False
+                else: return False
         # Enemy eating movement set
         else:
             if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
@@ -713,6 +759,25 @@ def isValidQueenMove(app, currR, currC, row, col, color):
     return (isValidBishopMove(app, currR, currC, row, col, color) or
                     isValidCastleMove(app, currR, currC, row, col, color))
 
+# Backtracking king used to update killzones
+# Exclude castling move
+def isValidKingBackTrack(app, currR, currC, row, col, color):
+    # Not moving is not a valid move
+    if row==currR and col==currC: return False
+    else:
+        # Checks if destination is in killzone
+        if color==1:
+            if app.whiteKZ[row][col] is True:
+                return False
+        elif color==0:
+            if app.blackKZ[row][col] is True:
+                return False
+        if (((currR+1==row) or (currR-1==row) or (currR==row)) 
+            and ((currC+1==col) or (currC-1==col) or (currC==col))):
+            return True
+        else: 
+            return False
+
 # Checks if [row][col] is a valid king move from [currR][currC]
 def isValidKingMove(app, currR, currC, row, col, color):
     # Not moving is not a valid move
@@ -728,7 +793,69 @@ def isValidKingMove(app, currR, currC, row, col, color):
         if (((currR+1==row) or (currR-1==row) or (currR==row)) 
             and ((currC+1==col) or (currC-1==col) or (currC==col))):
             return True
-        else: return False
+        # Castling Moves
+        elif (currR==row) and (currC+2==col):
+            if color==0: 
+                return isValidRightWhiteCastling(app, currR, currC, row, col)
+            elif color==1:
+                return isValidRightBlackCastling(app, currR, currC, row, col)
+        elif (currR==row) and (col==currC-2):
+            if color==0: 
+                return isValidLeftWhiteCastling(app, currR, currC, row, col)
+            elif color==1:
+                return isValidLeftBlackCastling(app, currR, currC, row, col)
+        else: 
+            return False
+
+# Checks if move from [currR][currC] to [row][col] is 
+# a valid right white castling move
+def isValidRightWhiteCastling(app, currR, currC, row, col):
+    if (app.rightCastling and 
+        (not isChecked(app)) and 
+        (app.pieces[row][col]==(None, "empty")) and 
+        (app.pieces[row][col-1]==(None, "empty")) and 
+        (not app.blackKZ[row][col]) and 
+        (not app.blackKZ[row][col-1])):
+        return True
+    else: return False
+
+# Checks if move from [currR][currC] to [row][col] is 
+# a valid left white castling move
+def isValidLeftWhiteCastling(app, currR, currC, row, col):
+    if (app.leftCastling and 
+        (not isChecked(app)) and
+        (app.pieces[row][col]==(None, "empty")) and 
+        (app.pieces[row][col-1]==(None, "empty")) and 
+        (app.pieces[row][col+1]==(None, "empty")) and 
+        (not app.blackKZ[row][col]) and 
+        (not app.blackKZ[row][col+1])):
+        return True
+    else: return False
+
+# Checks if move from [currR][currC] to [row][col] is 
+# a valid right black castling move
+def isValidRightBlackCastling(app, currR, currC, row, col):
+    if (app.rightCastling and 
+        (not isChecked(app)) and 
+        (app.pieces[row][col]==(None, "empty")) and 
+        (app.pieces[row][col-1]==(None, "empty")) and 
+        (not app.whiteKZ[row][col]) and 
+        (not app.whiteKZ[row][col-1])):
+        return True
+    else: return False
+
+# Checks if move from [currR][currC] to [row][col] is 
+# a valid left black castling move
+def isValidLeftBlackCastling(app, currR, currC, row, col):
+    if (app.leftCastling and 
+        (not isChecked(app)) and
+        (app.pieces[row][col]==(None, "empty")) and 
+        (app.pieces[row][col-1]==(None, "empty")) and 
+        (app.pieces[row][col+1]==(None, "empty")) and 
+        (not app.whiteKZ[row][col]) and 
+        (not app.whiteKZ[row][col+1])):
+        return True
+    else: return False
 
 # Returns the coordinates of the closest pieces to [currR][currC] 
 # on the same left diagonal

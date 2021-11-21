@@ -22,6 +22,8 @@ class Game(object):
         self.enPassant=None
         self.winner=None
         self.over=False
+        self.rightCastling=[False, False]
+        self.leftCastling=[False, False]
     
     # For debugging purposes
     def __repr__(self):
@@ -82,6 +84,40 @@ class Game(object):
         else:
             self.p1move=move
 
+    # Set right castling status
+    def setRightCastling(self, player):
+        self.rightCastling[player]=True
+
+    # Set left castling status
+    def setLeftCastling(self, player):
+        self.leftCastling[player]=True
+
+    # Returns a tuple of (status, direction)
+    # where status is True if the other player has made a castling move
+    # False otherwise
+    # Status represents the side on which the castling move was made
+    def getCastlingStatus(self, player):
+        if player==0:
+            if self.rightCastling[1]:
+                result=(True, "right")
+            elif self.leftCastling[1]:
+                result=(True, "left")
+            else:
+                result=(False, None)
+        elif player==1:
+            if self.rightCastling[0]:
+                result=(True, "right")
+            elif self.leftCastling[0]:
+                result=(True, "left")
+            else:
+                result=(False, None)
+        return result
+
+    # Reset Castling status
+    def resetCastling(self):
+        self.rightCastling=[False, False]
+        self.leftCastling=[False, False]
+
     # Set En Passant status
     def setEnPassant(self, player):
         if player==0:
@@ -89,6 +125,11 @@ class Game(object):
         elif player==1:
             self.enPassant=0
     
+    def resetEnPassant(self):
+        self.enPassant=None
+    
+    # Returns true if the other player executed En Passant
+    # False otherwise
     def getEnPassant(self, player):
         if self.enPassant==player:
             return True

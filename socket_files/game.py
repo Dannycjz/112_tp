@@ -7,7 +7,7 @@ class Game(object):
     Method inspired by
     https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
     Changed the went attribute to indicate which player has went
-    Changed the move method to a tuple instead of a list
+    Changed the move attribute to tuples instead of a list
     Added attributes blackwins/whiteWins
     Added attribute over to indicate game over state
     """
@@ -22,14 +22,13 @@ class Game(object):
         self.whiteWins=False
         self.blackWins=False
         self.over=False
-        self.ties=0
     
     # For debugging purposes
     def __repr__(self):
         return str(self.id)
     
     """ 
-    Method inspired by
+    Function inspired by
     https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
     Changed the function to return my defined move attribute
     """

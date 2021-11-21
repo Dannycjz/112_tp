@@ -88,22 +88,17 @@ def update_killzones(app):
             elem=app.pieces[row][col]
             color=elem[0]
             piece=elem[1]
-            if color==0 or color==None:
-                # Gets all possible threat origins
-                (pawnSet, castleSet, knightSet, 
-                bishopSet, queenSet, kingSet)=blackMoves(app, row, col)
-                # Updates killzone accordingly
-                update_blackKZ(app, pawnSet, castleSet, knightSet, 
-                bishopSet, queenSet, kingSet, row, col)
-            if color==1 or color==None:
-                # Gets all possible threat origins
-                (pawnSet, castleSet, knightSet, 
-                bishopSet, queenSet, kingSet)=whiteMoves(app, row, col)
-                # Updates killzone accordingly
-                update_whiteKZ(app, pawnSet, castleSet, knightSet, 
-                bishopSet, queenSet, kingSet, row, col)
-            else:
-                continue
+            # Gets all possible threat origins for white side
+            (BpawnSet, BcastleSet, BknightSet, 
+            BbishopSet, BqueenSet, BkingSet)=blackMoves(app, row, col)
+            # Gets all possible threat origins for black side
+            (WpawnSet, WcastleSet, WknightSet, 
+            WbishopSet, WqueenSet, WkingSet)=whiteMoves(app, row, col)
+            # Updates killzone accordingly
+            update_blackKZ(app, BpawnSet, BcastleSet, BknightSet, 
+            BbishopSet, BqueenSet, BkingSet, row, col)
+            update_whiteKZ(app, WpawnSet, WcastleSet, WknightSet, 
+            WbishopSet, WqueenSet, WkingSet, row, col)
 
 # returns black moves from [currR][currC]
 def blackMoves(app, currR, currC):
@@ -115,18 +110,21 @@ def blackMoves(app, currR, currC):
     kingSet=[]
     for row in range(8):
         for col in range(8):
-            if isValidPawnBackTrack(app, currR, currC, row, col, 1):
-                pawnSet.append((row, col))
-            if isValidCastleMove(app, currR, currC, row, col):
-                castleSet.append((row, col))
-            if isValidKnightMove(currR, currC, row, col):
-                knightSet.append((row, col))
-            if isValidBishopMove(app, currR, currC, row, col):
-                bishopSet.append((row, col))
-            if isValidQueenMove(app, currR, currC, row, col):
-                queenSet.append((row, col))
-            if isValidKingMove(app, currR, currC, row, col, 1):
-                kingSet.append((row, col))
+            if row==currR and col==currC:
+                continue
+            else:
+                if isValidPawnBackTrack(app, currR, currC, row, col, 1):
+                    pawnSet.append((row, col))
+                if isValidCastleMove(app, currR, currC, row, col, 1):
+                    castleSet.append((row, col))
+                if isValidKnightMove(app, currR, currC, row, col, 1):
+                    knightSet.append((row, col))
+                if isValidBishopMove(app, currR, currC, row, col, 1):
+                    bishopSet.append((row, col))
+                if isValidQueenMove(app, currR, currC, row, col, 1):
+                    queenSet.append((row, col))
+                if isValidKingMove(app, currR, currC, row, col, 1):
+                    kingSet.append((row, col))
     return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
 
 # returns white moves from [currR][currC]
@@ -141,13 +139,13 @@ def whiteMoves(app, currR, currC):
         for col in range(8):
             if isValidPawnBackTrack(app, currR, currC, row, col, 0):
                 pawnSet.append((row, col))
-            if isValidCastleMove(app, currR, currC, row, col):
+            if isValidCastleMove(app, currR, currC, row, col, 0):
                 castleSet.append((row, col))
-            if isValidKnightMove(currR, currC, row, col):
+            if isValidKnightMove(app, currR, currC, row, col, 0):
                 knightSet.append((row, col))
-            if isValidBishopMove(app, currR, currC, row, col):
+            if isValidBishopMove(app, currR, currC, row, col, 0):
                 bishopSet.append((row, col))
-            if isValidQueenMove(app, currR, currC, row, col):
+            if isValidQueenMove(app, currR, currC, row, col, 0):
                 queenSet.append((row, col))
             if isValidKingMove(app, currR, currC, row, col, 0):
                 kingSet.append((row, col))
@@ -160,7 +158,7 @@ def update_blackKZ(app, pawnSet, castleSet, knightSet,
         (row, col)=coord
         if app.pieces[row][col]==(1, "pawn"):
             app.blackKZ[currR][currC]=True
-            return
+            return 
     for coord in castleSet:
         (row, col)=coord
         if app.pieces[row][col]==(1, "castle"):
@@ -276,22 +274,23 @@ def isGoodMove(app, row, col, currR, currC):
     else: return False
 
 def tryMove(app, row, col, currR, currC):
-    piece=app.pieces[currR][currC]
+    myPiece=app.pieces[currR][currC]
+    otherPiece=app.pieces[row][col]
     # Update the king's location if the player is moving his king
-    if piece[0]==app.player and piece[1]=="king":
+    if myPiece[0]==app.player and myPiece[1]=="king":
         app.kingLoc=(row, col)
     app.pieces[currR][currC]=(None, "empty")
-    app.pieces[row][col]=piece
+    app.pieces[row][col]=myPiece
     update_killzones(app)
     if isChecked(app):
         result=False
     else:
         result=True
     # Reset the move
-    if piece[0]==app.player and piece[1]=="king":
+    if myPiece[0]==app.player and myPiece[1]=="king":
         app.kingLoc=(currR, currC)
-    app.pieces[row][col]=(None, "empty")
-    app.pieces[currR][currC]=piece
+    app.pieces[row][col]=otherPiece
+    app.pieces[currR][currC]=myPiece
     update_killzones(app)
     print("Move tried:", currR, currC, row, col, result)
     return result
@@ -329,7 +328,6 @@ def movePiece(app, row, col, currR, currC):
         clearOutlines(app)
     # Clear outlines
     else:
-        print("Not a valid move")
         unselectPiece(app)
         clearOutlines(app)
 
@@ -359,17 +357,17 @@ def timerFired(app):
         move=app.game.getMove(app.player)
         if move!=():
             (currR, currC, row, col)=move
-            print(currR, currC, row, col)
             selectPiece(app, currR, currC)
             makeMove(app, row, col, currR, currC)
             update_killzones(app)
+            # Checks if there is a checkmate
+            if checkMate(app):
+                app.checkMate=True
+                print("CheckMate")
             app.n.send("Updated")
+            print("Your Turn")
         else:
             pass
-    # Checks if there is a checkmate
-    if checkMate(app):
-        app.checkMate=True
-        print("CheckMate")
 
 # Returns True if there is a move that breaks the check
 # False otherwise
@@ -455,13 +453,13 @@ def isValidMove(app, row, col, currR, currC):
         else:
             return isValidPawnMove(app, currR, currC, row, col, color)
     elif piece=="castle":
-        return isValidCastleMove(app, currR, currC, row, col)
+        return isValidCastleMove(app, currR, currC, row, col, color)
     elif piece=="knight":
-        return isValidKnightMove(currR, currC, row, col)
+        return isValidKnightMove(app, currR, currC, row, col, color)
     elif piece=="bishop":
-        return isValidBishopMove(app, currR, currC, row, col)
+        return isValidBishopMove(app, currR, currC, row, col, color)
     elif piece=="queen":
-        return isValidQueenMove(app, currR, currC, row, col)
+        return isValidQueenMove(app, currR, currC, row, col, color)
     elif piece=="king":
         return isValidKingMove(app, currR, currC, row, col, color)
 
@@ -516,63 +514,77 @@ def isValidPawnMove(app, currR, currC, row, col, color):
             else: return False
 
 # Checks if [row][col] is a valid castle move from [currR][currC]
-def isValidCastleMove(app, currR, currC, row, col):
-    # Gets the furthest possible column positions
-    leftC, rightC=nearestPieceOnRow(app, currR, currC)
-    # Gets the furthest possible row positions
-    topR, botR=nearestPieceOnCol(app, currR, currC)
-    if col==currC:
-        if botR<=row<=topR:
-            return True
-        else: return False 
-    elif row==currR:
-        if leftC<=col<=rightC:
-            return True
-        else: return False 
-    else: return False
+def isValidCastleMove(app, currR, currC, row, col, color):
+    # Not moving is not a valid move
+    if row==currR and col==currC: 
+        return False
+    else:
+        # Gets the furthest possible column positions
+        leftC, rightC=nearestPieceOnRow(app, currR, currC)
+        # Gets the furthest possible row positions
+        topR, botR=nearestPieceOnCol(app, currR, currC)
+        if col==currC:
+            if botR<=row<=topR:
+                return True
+            else: return False 
+        elif row==currR:
+            if leftC<=col<=rightC:
+                return True
+            else: return False 
+        else: return False
  
  # Checks if [row][col] is a valid knight move from [currR][currC]
-def isValidKnightMove(currR, currC, row, col):
-    if (currR+1==row) or (currR-1==row):
-        if (currC+2==col) or (currC-2==col):
-            return True
-    elif (currC+1==col) or (currC-1==col):
-        if (currR+2==row) or (currR-2==row):
-            return True
-    return False
+def isValidKnightMove(app, currR, currC, row, col, color):
+    # Not moving is not a valid move
+    if row==currR and col==currC: return False
+    else:
+        if (currR+1==row) or (currR-1==row):
+            if (currC+2==col) or (currC-2==col):
+                return True
+        elif (currC+1==col) or (currC-1==col):
+            if (currR+2==row) or (currR-2==row):
+                return True
+        return False
 
 # Checks if [row][col] is a valid bishop move from [currR][currC]
-def isValidBishopMove(app, currR, currC, row, col):
-    leftD, Lindex=Ldiag(currR, currC)
-    Lleft, Lright=nearestPieceLDiag(app, currR, currC)
-    rightD, Rindex=Rdiag(currR, currC)
-    Rleft, Rright=nearestPieceRDiag(app, currR, currC)
-    for coord in rightD[Rleft:Rright+1]:
-        if (row, col)==coord:
-            return True
-    for coord in leftD[Lleft:Lright+1]:
-        if (row, col)==coord:
-            return True
-    return False
+def isValidBishopMove(app, currR, currC, row, col, color):
+    # Not moving is not a valid move
+    if row==currR and col==currC: 
+        return False
+    else:
+        leftD, Lindex=Ldiag(currR, currC)
+        Lleft, Lright=nearestPieceLDiag(app, currR, currC)
+        rightD, Rindex=Rdiag(currR, currC)
+        Rleft, Rright=nearestPieceRDiag(app, currR, currC)
+        for coord in rightD[Rleft:Rright+1]:
+            if (row, col)==coord:
+                return True
+        for coord in leftD[Lleft:Lright+1]:
+            if (row, col)==coord:
+                return True
+        return False
 
 # Checks if [row][col] is a valid queen move from [currR][currC]
-def isValidQueenMove(app, currR, currC, row, col):
-    return (isValidBishopMove(app, currR, currC, row, col) or
-                isValidCastleMove(app, currR, currC, row, col))
+def isValidQueenMove(app, currR, currC, row, col, color):
+    return (isValidBishopMove(app, currR, currC, row, col, color) or
+                    isValidCastleMove(app, currR, currC, row, col, color))
 
 # Checks if [row][col] is a valid king move from [currR][currC]
 def isValidKingMove(app, currR, currC, row, col, color):
-    # Checks if destination is in killzone
-    if color==1:
-        if app.whiteKZ[row][col] is True:
-            return False
-    elif color==0:
-        if app.blackKZ[row][col] is True:
-            return False
-    if (((currR+1==row) or (currR-1==row) or (currR==row)) 
-        and ((currC+1==col) or (currC-1==col) or (currC==col))):
-        return True
-    else: return False
+    # Not moving is not a valid move
+    if row==currR and col==currC: return False
+    else:
+        # Checks if destination is in killzone
+        if color==1:
+            if app.whiteKZ[row][col] is True:
+                return False
+        elif color==0:
+            if app.blackKZ[row][col] is True:
+                return False
+        if (((currR+1==row) or (currR-1==row) or (currR==row)) 
+            and ((currC+1==col) or (currC-1==col) or (currC==col))):
+            return True
+        else: return False
 
 # Returns the coordinates of the closest pieces to [currR][currC] 
 # on the same left diagonal

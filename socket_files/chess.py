@@ -127,8 +127,13 @@ def gameMode_timerFired(app):
         move=app.game.getMove(app.player)
         if move!=():
             (currR, currC, row, col)=move
-            selectPiece(app, currR, currC)
+            piece=selectPiece(app, currR, currC)
             makeMove(app, row, col, currR, currC)
+            # Delete the piece if En Passant
+            if app.game.getEnPassant(app.player):
+                print("deleting", currR, col)
+                app.pieces[currR][col]=(None, "emtpy")
+            app.lastMove=(piece, currR, currC, row, col)
             update_killzones(app)
             # Checks if there is a checkmate
             if checkMate(app):
@@ -186,6 +191,8 @@ def appStarted(app):
     app.oldLoc=None
     # Initiates a variable that keeps track of whether the local board is updated
     app.updated=False
+    # Initiates a vairable that keeps track of the latest move by an opponent
+    app.lastMove=None
 
     # Initiates the correct king location based on which player we are
 def initiateKingLoc(app, player):
@@ -386,6 +393,9 @@ def isGoodMove(app, row, col, currR, currC):
         return tryMove(app, row, col, currR, currC)
     else: return False
 
+# Tries the move from [currR][currC] to [row][col]
+# returns true if the move breaks the check
+# False otherwise
 def tryMove(app, row, col, currR, currC):
     myPiece=app.pieces[currR][currC]
     otherPiece=app.pieces[row][col]
@@ -437,6 +447,12 @@ def movePiece(app, row, col, currR, currC):
         app.n.send((currR, currC, row, col))
         app.n.send("setWent")
         app.updated=False
+        if ((app.pieces[currR][currC][1]=="pawn") and 
+        (col!=currC) and (app.pieces[row][col][0]==None)):
+            # Kill the piece 
+            app.pieces[currR][col]=(None, "empty")
+            print("EnPassant at:", currR, currC, row, col)
+            app.n.send("EnPassant")
         makeMove(app, row, col, currR, currC)
         clearOutlines(app)
     # Clear outlines
@@ -584,7 +600,25 @@ def isValidPawnMove(app, currR, currC, row, col, color):
         if app.pieces[row][col]==(None, "empty"):
             if (col==currC) and (currR==row-1):
                 return True
-            else: return False
+            else:
+                # En Passant
+                if app.lastMove!=None:
+                    (elem, originR, originC, dRow, dCol)=app.lastMove
+                    c=elem[0]
+                    piece=elem[1]
+                    if ((currR==4) and (color!=c) and (piece=="pawn") and 
+                        (originR==6) and (dRow==4) and ((originC==currC+1) or (originC==currC-1))):
+                        if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
+                            return True
+                        else: 
+                            print("not valid en passant move")
+                            return False
+                    else: 
+                        print("not eligible for enpassant")
+                        return False
+                else:
+                    print("last move was none")
+                    return False
         # Enemy eating movement set
         else:
             if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
@@ -595,7 +629,28 @@ def isValidPawnMove(app, currR, currC, row, col, color):
         if app.pieces[row][col]==(None, "empty"):
             if (col==currC) and (currR==row+1):
                 return True
-            else: return False
+            else: 
+                # En Passant
+                if app.lastMove!=None:
+                    (elem, originR, originC, dRow, dCol)=app.lastMove
+                    c=elem[0]
+                    piece=elem[1]
+                    if ((currR==3) and (color!=c) and (piece=="pawn") and 
+                        (originR==1) and (dRow==3) and ((originC==currC+1) or (originC==currC-1))):
+                        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                            return True
+                        else: 
+                            print(currR, currC, row, col)
+                            print("not valid en passant move")
+                            return False
+                    else:
+                        print("piece eat:",originR, originC, dRow, dCol)
+                        print("my pawn move:",currR, currC, row, col)
+                        print("not eligible for enpassant")
+                        return False
+                else: 
+                    print("last move was none")
+                    return False
         # Enemy eating movement set
         else:
             if (currR==row+1) and ((col==currC-1) or (col==currC+1)):

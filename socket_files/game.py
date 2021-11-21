@@ -19,6 +19,7 @@ class Game(object):
         self.p1move=()
         self.p0Went=False
         self.p1Went=False
+        self.enPassant=None
         self.winner=None
         self.over=False
     
@@ -80,6 +81,19 @@ class Game(object):
             self.p0move=move
         else:
             self.p1move=move
+
+    # Set En Passant status
+    def setEnPassant(self, player):
+        if player==0:
+            self.enPassant=1
+        elif player==1:
+            self.enPassant=0
+    
+    def getEnPassant(self, player):
+        if self.enPassant==player:
+            return True
+        else:
+            return False
 
     """ 
     Method copied from

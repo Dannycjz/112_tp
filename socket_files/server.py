@@ -71,6 +71,9 @@ def client_thread(conn, player, gameId):
                     game.setGameOver()
                     game.setWinner(player)
                     print(player, "just lost")
+                elif type(data)==str and data=="EnPassant":
+                    game.setEnPassant(player)
+                    print(player, "just got en passanted")
                 # if data is a move
                 # update the move
                 # reset update status so the other player can pull the move

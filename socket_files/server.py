@@ -82,6 +82,21 @@ def client_thread(conn, player, gameId):
                 elif type(data)==str and data=="LeftCastling":
                     game.setLeftCastling(player)
                     game.resetEnPassant()
+                elif type(data)==str and data=="promotedPawnToQueen":
+                    game.promotingPawnToQueen=True
+                    game.resetUpdated(player)
+                elif type(data)==str and data=="promotedPawnToBishop":
+                    game.promotingPawnToBishop=True
+                    game.resetUpdated(player)
+                elif type(data)==str and data=="promotedPawnToKnight":
+                    game.promotingPawnToKnight=True
+                    game.resetUpdated(player)
+                elif type(data)==str and data=="promotedPawnToRook":
+                    game.promotingPawnToRook=True
+                    game.resetUpdated(player)
+                elif type(data)==str and data=="resetPawnPromotion":
+                    game.resetPawnPromotion()
+                    game.setUpdated(player)
                 # if data is a move
                 # update the move
                 # reset update status so the other player can pull the move

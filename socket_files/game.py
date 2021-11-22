@@ -24,7 +24,11 @@ class Game(object):
         self.over=False
         self.rightCastling=[False, False]
         self.leftCastling=[False, False]
-    
+        self.promotingPawnToQueen=False
+        self.promotingPawnToBishop=False
+        self.promotingPawnToKnight=False
+        self.promotingPawnToRook=False
+
     # For debugging purposes
     def __repr__(self):
         return str(self.id)
@@ -83,6 +87,13 @@ class Game(object):
             self.p0move=move
         else:
             self.p1move=move
+    
+    # Reset all pawn promotion status
+    def resetPawnPromotion(self):
+        self.promotingPawnToQueen=False
+        self.promotingPawnToBishop=False
+        self.promotingPawnToKnight=False
+        self.promotingPawnToRook=False
 
     # Set right castling status
     def setRightCastling(self, player):

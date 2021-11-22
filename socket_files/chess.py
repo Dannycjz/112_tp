@@ -90,8 +90,7 @@ def disconnected_keyPressed(app, event):
 def victory_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    font = 'Arial 26 bold'
-    canvas.create_text(950, 200, text='You won!', font=font)
+    canvas.create_text(app.width/2, 900, text='You won!', font='Times 26 bold')
 
 #######################################################
 # Defeat Page #
@@ -100,8 +99,66 @@ def victory_redrawAll(app, canvas):
 def defeat_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    font = 'Arial 26 bold'
-    canvas.create_text(950, 200, text='You lost!', font=font)
+    canvas.create_text(app.width/2, 900, text='You lost!', font='Times 26 bold')
+
+#######################################################
+# Pawn Promotion Page #
+#######################################################
+
+def pawnPromotion_loadPieces(app, canvas):
+    y=890
+    possiblePieces=["queen", "bishop", "knight", "rook"]
+    for index in range(4):
+        if app.player==0:
+            piece=possiblePieces[index]
+            sprite=app.whitePieces[piece]
+            x=(app.width/5)*(index+1)
+            canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
+        elif app.player==1:
+            piece=possiblePieces[index]
+            sprite=app.blackPieces[piece]
+            x=(app.width/5)*(index+1)
+            canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
+
+def pawnPromotion_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    row=app.promotingPawn[0]
+    col=app.promotingPawn[1]
+    queenBtn=((app.width/5)-(app.cellSize/2), ((app.width/5)*2)+(app.cellSize/2), 
+                890-(app.cellSize/2), 890+(app.cellSize/2))
+    bishopBtn=(((app.width/5)*3)+(app.cellSize/2), ((app.width/5)*3)+(app.cellSize/2), 
+                890-(app.cellSize/2), 890+(app.cellSize/2))
+    knightBtn=(((app.width/5)*4)+(app.cellSize/2), ((app.width/5)*4)+(app.cellSize/2), 
+                890-(app.cellSize/2), 890+(app.cellSize/2))
+    rookBtn=(((app.width/5)*5)+(app.cellSize/2), ((app.width/5)*5)+(app.cellSize/2), 
+                890-(app.cellSize/2), 890+(app.cellSize/2))
+    if x in range(int(queenBtn[0]), int(queenBtn[1])) and y in range(int(queenBtn[2]), int(queenBtn[3])):
+        app.pieces[row][col]=(app.player, "queen")
+        app.n.send("promotedPawnToQueen")
+        app.promotingPawn=None
+        app.mode="gameMode"
+    elif x in range(int(bishopBtn[0]), int(bishopBtn[1])) and y in range(int(bishopBtn[2]), int(bishopBtn[3])):
+        app.pieces[row][col]=(app.player, "bishop")
+        app.n.send("promotedPawnToBishop")
+        app.promotingPawn=None
+        app.mode="gameMode"
+    elif x in range(int(knightBtn[0]), int(knightBtn[1])) and y in range(int(knightBtn[2]), int(knightBtn[3])):
+        app.pieces[row][col]=(app.player, "knight")
+        app.n.send("promotedPawnToKnight")
+        app.promotingPawn=None
+        app.mode="gameMode"
+    elif x in range(int(rookBtn[0]), int(rookBtn[1])) and y in range(int(rookBtn[2]), int(rookBtn[3])):
+        app.pieces[row][col]=(app.player, "rook")
+        app.n.send("promotedPawnToRook")
+        app.promotingPawn=None
+        app.mode="gameMode"
+
+def pawnPromotion_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+    pawnPromotion_loadPieces(app, canvas)
+    canvas.create_text(app.width/2, 950, text='Pawn Promotion', font='Times 26 bold')
 
 #######################################################
 # Game Mode #
@@ -147,7 +204,6 @@ def gameMode_mousePressed(app, event):
         pass
 
 def gameMode_timerFired(app):
-    # update_killzones(app)
     try:
     # Tries to get game from server
         app.game=app.n.send("get")
@@ -164,6 +220,7 @@ def gameMode_timerFired(app):
         # If local board is not up to date
         elif not app.game.updated[app.player]:
             print(app.game.updated)
+            print(app.game.promotingPawnToQueen)
             # Get the move and make the move on local board
             move=app.game.getMove(app.player)
             if move!=():
@@ -187,6 +244,31 @@ def gameMode_timerFired(app):
                         rook=app.pieces[row][col-2]
                         app.pieces[row][col+1]=rook
                         app.pieces[row][col-2]=(None, "empty")
+                elif app.game.promotingPawnToQueen:
+                    print("promoting pawn to queen")
+                    pawnR=app.lastMove[3]
+                    pawnC=app.lastMove[4]
+                    color=app.lastMove[0][0]
+                    app.pieces[pawnR][pawnC]=(color, "queen")
+                    app.n.send("resetPawnPromotion")
+                elif app.game.promotingPawnToBishop:
+                    pawnR=app.lastMove[3]
+                    pawnC=app.lastMove[4]
+                    color=app.lastMove[0][0]
+                    app.pieces[pawnR][pawnC]=(color, "bishop")
+                    app.n.send("resetPawnPromotion")
+                elif app.game.promotingPawnToKnight:
+                    pawnR=app.lastMove[3]
+                    pawnC=app.lastMove[4]
+                    color=app.lastMove[0][0]
+                    app.pieces[pawnR][pawnC]=(color, "knight")
+                    app.n.send("resetPawnPromotion")
+                elif app.game.promotingPawnToRook:
+                    pawnR=app.lastMove[3]
+                    pawnC=app.lastMove[4]
+                    color=app.lastMove[0][0]
+                    app.pieces[pawnR][pawnC]=(color, "rook")
+                    app.n.send("resetPawnPromotion")
                 app.lastMove=(piece, currR, currC, row, col)
                 update_killzones(app)
                 # Checks if there is a checkmate
@@ -231,7 +313,7 @@ def appStarted(app):
                 False, False, False, False]for i in range(8)]
     app.blackKZ=[[False, False, False, False, 
                 False, False, False, False]for i in range(8)]
-    app.cellSize=app.height/8
+    app.cellSize=min(app.width, app.height)/8
     imageUrl="http://clipart-library.com/images/pcqrGKzLi.png"
     #imageUrl="https://www.clipartmax.com/png/middle/455-4559543_chess-pieces-sprite-chess-pieces-sprite-sheet.png"
     app.chessSprites=app.loadImage(imageUrl)
@@ -253,6 +335,8 @@ def appStarted(app):
     app.updated=False
     # Initiates a vairable that keeps track of the latest move by an opponent
     app.lastMove=None
+    # Initiates a variable to store the location of the current pawn being promoted
+    app.promotingPawn=None
 
     # Initiates the correct king location based on which player we are
 def initiateKingLoc(app, player):
@@ -266,7 +350,7 @@ def initiateKingLoc(app, player):
 def init_sprites(app):
     app.chessSprites=app.scaleImage(app.chessSprites, 0.25)
     width, height=app.chessSprites.size
-    possiblePieces=["king0", "queen1", "bishop2", "knight3", "castle4", "pawn5"]
+    possiblePieces=["king0", "queen1", "bishop2", "knight3", "rook4", "pawn5"]
     for piece in possiblePieces:
         index=int(piece[-1])
         newPiece=piece[:-1]
@@ -281,18 +365,18 @@ def init_sprites(app):
 # 0 stands for white, 1 stands for black
 def init_piece():
     pieces=[
-        [(1, "castle"), (1, "knight"), (1, "bishop"), 
+        [(1, "rook"), (1, "knight"), (1, "bishop"), 
         (1, "queen"), (1, "king"), (1, "bishop"), 
-        (1, "knight"), (1, "castle")],
+        (1, "knight"), (1, "rook")],
         [(1, "pawn")for i in range(8)], 
         [(None, "empty")for i in range(8)], 
         [(None, "empty")for i in range(8)], 
         [(None, "empty")for i in range(8)], 
         [(None, "empty")for i in range(8)], 
         [(0, "pawn")for i in range(8)], 
-        [(0, "castle"), (0, "knight"), (0, "bishop"), 
+        [(0, "rook"), (0, "knight"), (0, "bishop"), 
         (0, "queen"), (0, "king"), (0, "bishop"), 
-        (0, "knight"), (0, "castle")]
+        (0, "knight"), (0, "rook")]
         ]
     return pieces
 
@@ -304,21 +388,21 @@ def update_killzones(app):
             color=elem[0]
             piece=elem[1]
             # Gets all possible threat origins for white side
-            (BpawnSet, BcastleSet, BknightSet, 
+            (BpawnSet, BrookSet, BknightSet, 
             BbishopSet, BqueenSet, BkingSet)=blackMoves(app, row, col)
             # Gets all possible threat origins for black side
-            (WpawnSet, WcastleSet, WknightSet, 
+            (WpawnSet, WrookSet, WknightSet, 
             WbishopSet, WqueenSet, WkingSet)=whiteMoves(app, row, col)
             # Updates killzone accordingly
-            update_blackKZ(app, BpawnSet, BcastleSet, BknightSet, 
+            update_blackKZ(app, BpawnSet, BrookSet, BknightSet, 
             BbishopSet, BqueenSet, BkingSet, row, col)
-            update_whiteKZ(app, WpawnSet, WcastleSet, WknightSet, 
+            update_whiteKZ(app, WpawnSet, WrookSet, WknightSet, 
             WbishopSet, WqueenSet, WkingSet, row, col)
 
 # returns black moves from [currR][currC]
 def blackMoves(app, currR, currC):
     pawnSet=[]
-    castleSet=[]
+    rookSet=[]
     knightSet=[]
     bishopSet=[]
     queenSet=[]
@@ -330,8 +414,8 @@ def blackMoves(app, currR, currC):
             else:
                 if isValidPawnBackTrack(app, currR, currC, row, col, 1):
                     pawnSet.append((row, col))
-                if isValidCastleMove(app, currR, currC, row, col, 1):
-                    castleSet.append((row, col))
+                if isValidRookMove(app, currR, currC, row, col, 1):
+                    rookSet.append((row, col))
                 if isValidKnightMove(app, currR, currC, row, col, 1):
                     knightSet.append((row, col))
                 if isValidBishopMove(app, currR, currC, row, col, 1):
@@ -340,12 +424,12 @@ def blackMoves(app, currR, currC):
                     queenSet.append((row, col))
                 if isValidKingBackTrack(app, currR, currC, row, col, 1):
                     kingSet.append((row, col))
-    return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
+    return pawnSet, rookSet, knightSet, bishopSet, queenSet, kingSet
 
 # returns white moves from [currR][currC]
 def whiteMoves(app, currR, currC):
     pawnSet=[]
-    castleSet=[]
+    rookSet=[]
     knightSet=[]
     bishopSet=[]
     queenSet=[]
@@ -354,8 +438,8 @@ def whiteMoves(app, currR, currC):
         for col in range(8):
             if isValidPawnBackTrack(app, currR, currC, row, col, 0):
                 pawnSet.append((row, col))
-            if isValidCastleMove(app, currR, currC, row, col, 0):
-                castleSet.append((row, col))
+            if isValidRookMove(app, currR, currC, row, col, 0):
+                rookSet.append((row, col))
             if isValidKnightMove(app, currR, currC, row, col, 0):
                 knightSet.append((row, col))
             if isValidBishopMove(app, currR, currC, row, col, 0):
@@ -364,19 +448,19 @@ def whiteMoves(app, currR, currC):
                 queenSet.append((row, col))
             if isValidKingBackTrack(app, currR, currC, row, col, 0):
                 kingSet.append((row, col))
-    return pawnSet, castleSet, knightSet, bishopSet, queenSet, kingSet
+    return pawnSet, rookSet, knightSet, bishopSet, queenSet, kingSet
 
 # Updates killzones for black pieces
-def update_blackKZ(app, pawnSet, castleSet, knightSet, 
+def update_blackKZ(app, pawnSet, rookSet, knightSet, 
                 bishopSet, queenSet, kingSet, currR, currC):
     for coord in pawnSet:
         (row, col)=coord
         if app.pieces[row][col]==(1, "pawn"):
             app.blackKZ[currR][currC]=True
             return 
-    for coord in castleSet:
+    for coord in rookSet:
         (row, col)=coord
-        if app.pieces[row][col]==(1, "castle"):
+        if app.pieces[row][col]==(1, "rook"):
             app.blackKZ[currR][currC]=True
             return
     for coord in knightSet:
@@ -402,16 +486,16 @@ def update_blackKZ(app, pawnSet, castleSet, knightSet,
     app.blackKZ[currR][currC]=False
 
 # Updates killzones for white pieces
-def update_whiteKZ(app, pawnSet, castleSet, knightSet, 
+def update_whiteKZ(app, pawnSet, rookSet, knightSet, 
                 bishopSet, queenSet, kingSet, currR, currC):
     for coord in pawnSet:
         (row, col)=coord
         if app.pieces[row][col]==(0, "pawn"):
             app.whiteKZ[currR][currC]=True
             return
-    for coord in castleSet:
+    for coord in rookSet:
         (row, col)=coord
-        if app.pieces[row][col]==(0, "castle"):
+        if app.pieces[row][col]==(0, "rook"):
             app.whiteKZ[currR][currC]=True
             return
     for coord in knightSet:
@@ -505,12 +589,12 @@ def makeMove(app, row, col, currR, currC):
     if piece[0]==app.player and piece[1]=="king":
         app.kingLoc=(row, col)
         app.kingMoved=True
-    elif piece[0]==app.player and piece[1]=="castle" and piece[0]==0:
+    elif piece[0]==app.player and piece[1]=="rook" and piece[0]==0:
         if currC==0:
             app.leftRookMoved=True
         elif currC==7:
             app.rightRookMoved=True
-    elif piece[0]==app.player and piece[1]=="castle" and piece[0]==1:
+    elif piece[0]==app.player and piece[1]=="rook" and piece[0]==1:
         if currC==0:
             app.rightRookMoved=True
         elif currC==7:
@@ -550,9 +634,24 @@ def movePiece(app, row, col, currR, currC):
                 app.pieces[row][col+1]=rook
                 app.pieces[row][col-2]=(None, "empty")
                 app.n.send("LeftCastling")
+            clearOutlines(app)
+        else:
+            app.n.send("resetSpecialMoves")
+            clearOutlines(app)
         makeMove(app, row, col, currR, currC)
-        app.n.send("resetSpecialMoves")
-        clearOutlines(app)
+        # Checks if the move just made enables the player to promote a pawn
+        if ((app.pieces[row][col][1]=="pawn") and
+            (app.player==0) and
+            (app.pieces[row][col][0]==0) and
+            (row==0)):
+            app.mode="pawnPromotion"
+            app.promotingPawn=(row, col)
+        elif ((app.pieces[row][col][1]=="pawn") and
+            (app.player==1) and
+            (app.pieces[row][col][0]==1) and
+            (row==7)):
+            app.mode="pawnPromotion"
+            app.promotingPawn=(row, col)
     # Clear outlines
     else:
         unselectPiece(app)
@@ -655,8 +754,8 @@ def isValidMove(app, row, col, currR, currC):
             return isValidStartPawnMove(app, currR, currC, row, col, color)
         else:
             return isValidPawnMove(app, currR, currC, row, col, color)
-    elif piece=="castle":
-        return isValidCastleMove(app, currR, currC, row, col, color)
+    elif piece=="rook":
+        return isValidRookMove(app, currR, currC, row, col, color)
     elif piece=="knight":
         return isValidKnightMove(app, currR, currC, row, col, color)
     elif piece=="bishop":
@@ -743,8 +842,8 @@ def isValidPawnMove(app, currR, currC, row, col, color):
                 return True
             else: return False
 
-# Checks if [row][col] is a valid castle move from [currR][currC]
-def isValidCastleMove(app, currR, currC, row, col, color):
+# Checks if [row][col] is a valid rook move from [currR][currC]
+def isValidRookMove(app, currR, currC, row, col, color):
     # Not moving is not a valid move
     if row==currR and col==currC: 
         return False
@@ -797,7 +896,7 @@ def isValidBishopMove(app, currR, currC, row, col, color):
 # Checks if [row][col] is a valid queen move from [currR][currC]
 def isValidQueenMove(app, currR, currC, row, col, color):
     return (isValidBishopMove(app, currR, currC, row, col, color) or
-                    isValidCastleMove(app, currR, currC, row, col, color))
+                    isValidRookMove(app, currR, currC, row, col, color))
 
 # Backtracking king used to update killzones
 # Exclude castling move
@@ -1074,7 +1173,7 @@ def loadPieces(app, canvas):
             canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
 
 def chessAnimation():
-    runApp(width=1000, height=800)
+    runApp(width=800, height=1000)
 
 if __name__=="__main__":
     chessAnimation()

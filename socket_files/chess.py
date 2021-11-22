@@ -7,33 +7,68 @@ from network import Network
 #######################################################
 
 def landingPage_redrawAll(app, canvas):
-    font = 'Arial 26 bold'
-    btnSize=200
-    btnX0=(app.width/2)-(btnSize/2)
-    btnY0=(app.height/2)+100
-    btnX1=btnX0+btnSize
-    btnY1=btnY0+btnSize
-    btnCenterX=(btnX0+btnX1)/2
-    btnCenterY=(btnY0+btnY1)/2
-    canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font=font)
-    canvas.create_rectangle(btnX0, btnY0, btnX1, btnY1, fill="grey")
-    canvas.create_text(btnCenterX, btnCenterY, text='Connect', font=font)
+    centerX=app.width/2
+    btnXSize=200
+    btnYSize=100
+    btn1Y0=(app.height/2)+100
+    btn1X1=centerX-100
+    btn1X0=btn1X1-btnXSize
+    btn1Y1=btn1Y0+btnYSize
+    btn1CenterX=(btn1X0+btn1X1)/2
+    btn1CenterY=(btn1Y0+btn1Y1)/2
+    btn2X0=centerX+100
+    btn2Y0=(app.height/2)+100
+    btn2X1=btn2X0+btnXSize
+    btn2Y1=btn2Y0+btnYSize
+    btn2CenterX=(btn2X0+btn2X1)/2
+    btn2CenterY=(btn2Y0+btn2Y1)/2
+    canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
+    canvas.create_rectangle(btn1X0, btn1Y0, btn1X1, btn1Y1, fill="white")
+    canvas.create_rectangle(btn2X0, btn2Y0, btn2X1, btn2Y1, fill="black")
+    canvas.create_text(btn1CenterX, btn1CenterY, text='Play as White', fill='black', font='Times 13')
+    canvas.create_text(btn2CenterX, btn2CenterY, text='Play as Black', fill='white', font='Times 13')
 
 def landingPage_mousePressed(app, event):
     x=event.x
     y=event.y
-    btnSize=200
-    btnX0=app.width/2
-    btnY0=(app.height/2)+100
-    btnX1=btnX0+btnSize
-    btnY1=btnY0+btnSize
-    if (x in range(int(btnX0), int(btnX1))) and (y in range(int(btnY0), int(btnY1))):
-        app.player=int(app.n.connect())
+    btnXSize=200
+    btnYSize=100
+    centerX=app.width/2
+    btn1Y0=(app.height/2)+100
+    btn1X1=centerX-100
+    btn1X0=btn1X1-btnXSize
+    btn1Y1=btn1Y0+btnYSize
+    btn2X0=centerX+100
+    btn2Y0=(app.height/2)+100
+    btn2X1=btn2X0+btnXSize
+    btn2Y1=btn2Y0+btnYSize
+    if (x in range(int(btn1X0), int(btn1X1))) and (y in range(int(btn1Y0), int(btn1Y1))):
+        app.player=0
+        app.n.connect(app.player)
         app.kingLoc=initiateKingLoc(app, app.player)
         app.mode="gameMode"
+        print("playing as:", app.player)
+    elif (x in range(int(btn2X0), int(btn2X1))) and (y in range(int(btn2Y0), int(btn2Y1))):
+        app.player=1
+        app.n.connect(app.player)
+        app.kingLoc=initiateKingLoc(app, app.player)
+        app.mode="gameMode"
+        print("playing as:", app.player)
     else:pass
 
 def landingPage_keyPressed(app, event):
+    pass
+
+#######################################################
+# Rejected Page #
+#######################################################
+
+def rejected_redrawAll(app, canvas):
+    font = 'Arial 26 bold'
+    canvas.create_text(app.width/2, app.height/2, 
+                        text='No white player online yet, please try again later', font=font)
+
+def rejected_keyPressed(app, event):
     pass
 
 #######################################################
@@ -43,7 +78,7 @@ def landingPage_keyPressed(app, event):
 def disconnected_redrawAll(app, canvas):
     font = 'Arial 26 bold'
     canvas.create_text(app.width/2, app.height/2, 
-                        text='Your opponent disconnected, closing the game now', font=font)
+                        text='Your Opponent Disconnected, closing the game now', font=font)
 
 def disconnected_keyPressed(app, event):
     pass
@@ -118,47 +153,52 @@ def gameMode_timerFired(app):
         app.game=app.n.send("get")
     except:
         app.mode="disconnected"
-    if app.game.over:
-        if app.game.winner==app.player:
-            app.mode="victory"
-        else:
-            app.mode="defeat"
-    # If local board is not up to date
-    elif not app.game.updated[app.player]:
-        # Get the move and make the move on local board
-        move=app.game.getMove(app.player)
-        if move!=():
-            (currR, currC, row, col)=move
-            piece=selectPiece(app, currR, currC)
-            makeMove(app, row, col, currR, currC)
-            status=app.game.getCastlingStatus(app.player)
-            # Delete the piece if En Passant
-            if app.game.getEnPassant(app.player):
-                app.pieces[currR][col]=(None, "empty")
-            # If the other player just made a castling move:
-            elif status[0]:
-                # Move the rook for right castling
-                if status[1]=="right":
-                    rook=app.pieces[row][col+1]
-                    app.pieces[row][col-1]=rook
-                    app.pieces[row][col+1]=(None, "empty")
-                # Move the rook for left castling
-                elif status[1]=="left":
-                    rook=app.pieces[row][col-2]
-                    app.pieces[row][col+1]=rook
-                    app.pieces[row][col-2]=(None, "empty")
-            app.lastMove=(piece, currR, currC, row, col)
-            update_killzones(app)
-            # Checks if there is a checkmate
-            if checkMate(app):
-                app.checkMate=True
-                app.n.send("Checkmate")
+    if app.game==None: 
+        app.mode="rejected"
+    else:
+        if app.game.over:
+            if app.game.winner==app.player:
+                app.mode="victory"
+            else:
                 app.mode="defeat"
-                print("CheckMate")
-            app.n.send("Updated")
-            print("Your Turn")
-        else:
-            pass
+        # If local board is not up to date
+        elif not app.game.updated[app.player]:
+            print(app.game.updated)
+            # Get the move and make the move on local board
+            move=app.game.getMove(app.player)
+            if move!=():
+                print("Other player made a move", move)
+                (currR, currC, row, col)=move
+                piece=selectPiece(app, currR, currC)
+                makeMove(app, row, col, currR, currC)
+                status=app.game.getCastlingStatus(app.player)
+                # Delete the piece if En Passant
+                if app.game.getEnPassant(app.player):
+                    app.pieces[currR][col]=(None, "empty")
+                # If the other player just made a castling move:
+                elif status[0]:
+                    # Move the rook for right castling
+                    if status[1]=="right":
+                        rook=app.pieces[row][col+1]
+                        app.pieces[row][col-1]=rook
+                        app.pieces[row][col+1]=(None, "empty")
+                    # Move the rook for left castling
+                    elif status[1]=="left":
+                        rook=app.pieces[row][col-2]
+                        app.pieces[row][col+1]=rook
+                        app.pieces[row][col-2]=(None, "empty")
+                app.lastMove=(piece, currR, currC, row, col)
+                update_killzones(app)
+                # Checks if there is a checkmate
+                if checkMate(app):
+                    app.checkMate=True
+                    app.n.send("Checkmate")
+                    app.mode="defeat"
+                    print("CheckMate")
+                app.n.send("Updated")
+                print("Your Turn")
+            else:
+                pass
 
 def gameMode_redrawAll(app, canvas):
     drawBoard(app, canvas)

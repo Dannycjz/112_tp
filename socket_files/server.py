@@ -27,7 +27,7 @@ except socket.error as e:
     str(e)
 
 # Make the socket start listening to connections
-s.listen(2)
+s.listen()
 print("Waiting for a connection, Server Started")
 
 connected=set()
@@ -42,8 +42,6 @@ Changed the data handling to fit my game object
 '''
 def client_thread(conn, player, gameId):
     global idCount
-    # Sends assigned gameId back to client to start
-    conn.send(str.encode(str(player)))
 
     reply=""
     # Continuously check for data from conn
@@ -94,9 +92,10 @@ def client_thread(conn, player, gameId):
                     game.resetWent(player)
                     print("Reset requested by:", player)
                     print(game.updated)
-
+                    
                 conn.sendall(pickle.dumps(game))
             else:
+                print("gameId not in games")
                 break
                 
         # Error handling
@@ -123,20 +122,26 @@ while True:
     conn, addr=s.accept()
     print("Connected to:", addr)
 
+    # Receives player data on initial connection
+    player=conn.recv(4096).decode()
+    print("The player wants to play as", player)
+
     # Keeps track of how many people are connected to the server
     idCount+=1
-    player=0
     gameId=(idCount-1)//2
     
     # Creates a new game if there are an odd number of connections
-    if idCount%2==1:
+    if (idCount%2==1) and (int(player)==0):
         games[gameId]=Game(gameId)
         print(f"Created a new game...:{gameId}")
         print(games)
+        start_new_thread(client_thread, (conn, int(player), gameId))
+    elif idCount%2==1:
+        conn.close()
+        idCount-=1
+        print("Connection closed", addr)
     else:
         games[gameId].ready = True
-        player=1
         print(f"Second player connected to game{gameId}")
         print(games)
-
-    start_new_thread(client_thread, (conn, player, gameId))
+        start_new_thread(client_thread, (conn, int(player), gameId))

@@ -12,7 +12,7 @@ class Game(object):
     Added attribute over to indicate game over state
     """
     def __init__(self, id):
-        self.updated=[False, False]
+        self.updated=[True, True]
         self.ready=False
         self.id=id
         self.p0move=()

@@ -21,11 +21,11 @@ class Network(object):
     Function copied from:
     www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
     '''
-    def connect(self):
+    def connect(self, player):
         # Error handling
         try:    
             self.client.connect(self.addr)
-            return self.client.recv(2048*2).decode()
+            self.client.send(str.encode(str(player)))
         except:
             pass
     
@@ -44,11 +44,5 @@ class Network(object):
         except socket.error as e:
             print(e)
 
-# Debugging stuff
-# n=Network()
-# dots=pickle.loads(n.dots)
-# print(dots)
-# dots=n.send((150, 150))
-# print(dots)
 
     

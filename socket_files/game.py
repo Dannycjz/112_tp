@@ -28,6 +28,7 @@ class Game(object):
         self.promotingPawnToBishop=False
         self.promotingPawnToKnight=False
         self.promotingPawnToRook=False
+        self.open=[True, True]
 
     # For debugging purposes
     def __repr__(self):

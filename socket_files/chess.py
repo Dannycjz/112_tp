@@ -125,13 +125,13 @@ def pawnPromotion_mousePressed(app, event):
     y=event.y
     row=app.promotingPawn[0]
     col=app.promotingPawn[1]
-    queenBtn=((app.width/5)-(app.cellSize/2), ((app.width/5)*2)+(app.cellSize/2), 
+    queenBtn=((app.width/5)-(app.cellSize/2), ((app.width/5))+(app.cellSize/2), 
                 890-(app.cellSize/2), 890+(app.cellSize/2))
-    bishopBtn=(((app.width/5)*3)+(app.cellSize/2), ((app.width/5)*3)+(app.cellSize/2), 
+    bishopBtn=(((app.width/5)*2)-(app.cellSize/2), ((app.width/5)*2)+(app.cellSize/2), 
                 890-(app.cellSize/2), 890+(app.cellSize/2))
-    knightBtn=(((app.width/5)*4)+(app.cellSize/2), ((app.width/5)*4)+(app.cellSize/2), 
+    knightBtn=(((app.width/5)*3)-(app.cellSize/2), ((app.width/5)*3)+(app.cellSize/2), 
                 890-(app.cellSize/2), 890+(app.cellSize/2))
-    rookBtn=(((app.width/5)*5)+(app.cellSize/2), ((app.width/5)*5)+(app.cellSize/2), 
+    rookBtn=(((app.width/5)*4)-(app.cellSize/2), ((app.width/5)*4)+(app.cellSize/2), 
                 890-(app.cellSize/2), 890+(app.cellSize/2))
     if x in range(int(queenBtn[0]), int(queenBtn[1])) and y in range(int(queenBtn[2]), int(queenBtn[3])):
         app.pieces[row][col]=(app.player, "queen")

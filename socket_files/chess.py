@@ -45,13 +45,15 @@ def landingPage_mousePressed(app, event):
     if (x in range(int(btn1X0), int(btn1X1))) and (y in range(int(btn1Y0), int(btn1Y1))):
         app.player=0
         app.n.connect(app.player)
-        app.kingLoc=initiateKingLoc(app, app.player)
+        app.pieces=init_piece(app)
+        app.kingLoc=(7, 4)
         app.mode="gameMode"
         print("playing as:", app.player)
     elif (x in range(int(btn2X0), int(btn2X1))) and (y in range(int(btn2Y0), int(btn2Y1))):
         app.player=1
         app.n.connect(app.player)
-        app.kingLoc=initiateKingLoc(app, app.player)
+        app.pieces=init_piece(app)
+        app.kingLoc=(7, 4)
         app.mode="gameMode"
         print("playing as:", app.player)
     else:pass
@@ -195,6 +197,7 @@ def gameMode_mousePressed(app, event):
             # Either select a piece or clear moves/outlines
             if app.makingMove is False:
                 piece=selectPiece(app, row, col)
+                updateKZOutlines(app, app.player)
                 if piece is None: pass
                 elif piece[0]!=app.player:
                     unselectPiece(app)
@@ -239,13 +242,14 @@ def gameMode_timerFired(app):
                 app.mode="defeat"
         # If local board is not up to date
         elif not app.game.updated[app.player]:
-            print(app.game.updated)
-            print(app.game.promotingPawnToQueen)
             # Get the move and make the move on local board
             move=app.game.getMove(app.player)
             if move!=():
                 print("Other player made a move", move)
                 (currR, currC, row, col)=move
+                # Mirror the move 
+                currR=7-currR
+                row=7-row
                 piece=selectPiece(app, currR, currC)
                 makeMove(app, row, col, currR, currC)
                 status=app.game.getCastlingStatus(app.player)
@@ -334,7 +338,7 @@ def appStarted(app):
     app.kingMoved=False
     # Initiates a variable to store the location of the king
     app.kingLoc=None 
-    app.pieces=init_piece()
+    app.pieces=None
     # Initiates 2D lists to represent killzones
     app.whiteKZ=[[False, False, False, False, 
                 False, False, False, False]for i in range(8)]
@@ -365,13 +369,6 @@ def appStarted(app):
     # Initiates a variable to store the location of the current pawn being promoted
     app.promotingPawn=None
 
-    # Initiates the correct king location based on which player we are
-def initiateKingLoc(app, player):
-    if player==0:
-        return (7, 4)
-    elif player==1:
-        return (0, 4)
-
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
 # Loads chess sprites and stores them in dicts
 def init_sprites(app):
@@ -390,8 +387,8 @@ def init_sprites(app):
 
 # Initializes 2D list to store the locations of pieces on board
 # 0 stands for white, 1 stands for black
-def init_piece():
-    pieces=[
+def init_piece(app):
+    Wpieces=[
         [(1, "rook"), (1, "knight"), (1, "bishop"), 
         (1, "queen"), (1, "king"), (1, "bishop"), 
         (1, "knight"), (1, "rook")],
@@ -405,7 +402,24 @@ def init_piece():
         (0, "queen"), (0, "king"), (0, "bishop"), 
         (0, "knight"), (0, "rook")]
         ]
-    return pieces
+    Bpieces=[
+        [(0, "rook"), (0, "knight"), (0, "bishop"), 
+        (0, "queen"), (0, "king"), (0, "bishop"), 
+        (0, "knight"), (0, "rook")],
+        [(0, "pawn")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(None, "empty")for i in range(8)], 
+        [(1, "pawn")for i in range(8)], 
+        [(1, "rook"), (1, "knight"), (1, "bishop"), 
+        (1, "queen"), (1, "king"), (1, "bishop"), 
+        (1, "knight"), (1, "rook")]
+        ]
+    if app.player==0:
+        return Wpieces
+    elif app.player==1:
+        return Bpieces
 
 # Updates killzones based on piece positions
 def update_killzones(app):
@@ -559,11 +573,11 @@ def updateCastlingEligibility(app):
 
 # Backtrack pawn check for killzone updates
 def isValidPawnBackTrack(app, currR, currC, row, col, color):
-    if color==1:
+    if color!=app.player:
         if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
                 return True
         else: return False
-    elif color==0:
+    elif color==app.player:
         if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
             return True
         else: return False
@@ -661,24 +675,16 @@ def movePiece(app, row, col, currR, currC):
                 app.pieces[row][col+1]=rook
                 app.pieces[row][col-2]=(None, "empty")
                 app.n.send("LeftCastling")
-            clearOutlines(app)
         else:
             app.n.send("resetSpecialMoves")
-            clearOutlines(app)
         makeMove(app, row, col, currR, currC)
+        clearOutlines(app)
         # Checks if the move just made enables the player to promote a pawn
         if ((app.pieces[row][col][1]=="pawn") and
-            (app.player==0) and
-            (app.pieces[row][col][0]==0) and
             (row==0)):
             app.mode="pawnPromotion"
             app.promotingPawn=(row, col)
-        elif ((app.pieces[row][col][1]=="pawn") and
-            (app.player==1) and
-            (app.pieces[row][col][0]==1) and
-            (row==7)):
-            app.mode="pawnPromotion"
-            app.promotingPawn=(row, col)
+            clearOutlines(app)
     # Clear outlines
     else:
         unselectPiece(app)
@@ -775,9 +781,7 @@ def isValidMove(app, row, col, currR, currC):
     if app.pieces[row][col][0]==color: return False
     # Checks valid moves based on piece type
     if piece=="pawn":
-        if color==1 and currR==1:
-            return isValidStartPawnMove(app, currR, currC, row, col, color)
-        elif color==0 and currR==6:
+        if currR==6:
             return isValidStartPawnMove(app, currR, currC, row, col, color)
         else:
             return isValidPawnMove(app, currR, currC, row, col, color)
@@ -794,80 +798,41 @@ def isValidMove(app, row, col, currR, currC):
 
 # Checks if [row][col] is a valid start pawn move from [currR][currC]
 def isValidStartPawnMove(app, currR, currC, row, col, color):
-    if color==1:
-        # Empty cells move set
-        if app.pieces[row][col]==(None, "empty"):
-            if (col==currC) and ((currR==row-1)or (currR==row-2)):
-                return True
-            else: return False
-        # Enemy eating movement set
-        else:
-            if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
-                return True
-            else: return False
+    # Empty cells move set
+    if app.pieces[row][col]==(None, "empty"):
+        if (col==currC) and ((currR==row+1)or (currR==row+2)):
+            return True
+        else: return False
+    # Enemy eating movement set
     else:
-        # Empty cells move set
-        if app.pieces[row][col]==(None, "empty"):
-            if (col==currC) and ((currR==row+1)or (currR==row+2)):
-                return True
-            else: return False
-        # Enemy eating movement set
-        else:
-            if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
-                return True
-            else: return False
+        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+            return True
+        else: return False
 
 # Checks if [row][col] is a valid normal pawn move from [currR][currC]
 def isValidPawnMove(app, currR, currC, row, col, color):
-    if color==1:
-        # Empty cells move set
-        if app.pieces[row][col]==(None, "empty"):
-            if (col==currC) and (currR==row-1):
-                return True
-            else:
-                # En Passant
-                if app.lastMove!=None:
-                    (elem, originR, originC, dRow, dCol)=app.lastMove
-                    c=elem[0]
-                    piece=elem[1]
-                    if ((currR==4) and (color!=c) and (piece=="pawn") and 
-                        (originR==6) and (dRow==4) and ((originC==currC+1) or (originC==currC-1))):
-                        if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
-                            return True
-                        else: 
-                            return False
-                    else: 
-                        return False
-                else:
-                    return False
-        # Enemy eating movement set
-        else:
-            if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
-                return True
+    # Empty cells move set
+    if app.pieces[row][col]==(None, "empty"):
+        if (col==currC) and (currR==row+1):
+            return True
+        else: 
+            # En Passant
+            if app.lastMove!=None:
+                (elem, originR, originC, dRow, dCol)=app.lastMove
+                c=elem[0]
+                piece=elem[1]
+                if ((currR==3) and (color!=c) and (piece=="pawn") and 
+                    (originR==1) and (dRow==3) and ((originC==currC+1) or (originC==currC-1))):
+                    if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                        return True
+                    else: return False
+                else:return False
             else: return False
+    # Enemy eating movement set
     else:
-        # Empty cells move set
-        if app.pieces[row][col]==(None, "empty"):
-            if (col==currC) and (currR==row+1):
-                return True
-            else: 
-                # En Passant
-                if app.lastMove!=None:
-                    (elem, originR, originC, dRow, dCol)=app.lastMove
-                    c=elem[0]
-                    piece=elem[1]
-                    if ((currR==3) and (color!=c) and (piece=="pawn") and 
-                        (originR==1) and (dRow==3) and ((originC==currC+1) or (originC==currC-1))):
-                        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
-                            return True
-                        else: return False
-                    else:return False
-                else: return False
-        # Enemy eating movement set
-        else:
-            if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
-                return True
-            else: return False
+        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+            return True
+        else: return False
 
 # Checks if [row][col] is a valid rook move from [currR][currC]
 def isValidRookMove(app, currR, currC, row, col, color):

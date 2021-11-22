@@ -39,11 +39,11 @@ Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 Changed the sending/receiving to use pickle
 Changed the data handling to fit my game object
+Added commands to control chess moves
 '''
 def client_thread(conn, player, gameId):
     global idCount
 
-    reply=""
     # Continuously check for data from conn
     while True:
         try:
@@ -65,10 +65,13 @@ def client_thread(conn, player, gameId):
                 elif type(data)==str and data=="setWent":
                     game.setWent(player)
                     print(game.getWent(player), player, "Went")
+                # If there is a checkmate
+                # Set game to be over
                 elif type(data)==str and data=="Checkmate":
                     game.setGameOver()
                     game.setWinner(player)
                     print(player, "just lost")
+                # Deals with special moves
                 elif type(data)==str and data=="EnPassant":
                     game.setEnPassant(player)
                     game.resetCastling()
@@ -128,8 +131,9 @@ def client_thread(conn, player, gameId):
     conn.close()
 
 '''
-Code basically copied from
+Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
+Added gameId and player assignment to allow players to choose either white or black
 '''
 # continuously checks for connections 
 while True:

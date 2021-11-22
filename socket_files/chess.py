@@ -78,7 +78,9 @@ def rejected_keyPressed(app, event):
 def disconnected_redrawAll(app, canvas):
     font = 'Arial 26 bold'
     canvas.create_text(app.width/2, app.height/2, 
-                        text='Your Opponent Disconnected, closing the game now', font=font)
+                        text='Your Opponent Disconnected', font=font)
+    canvas.create_text(app.width/2, (app.height/2)+100, 
+                        text='Closing the game now', font=font)
 
 def disconnected_keyPressed(app, event):
     pass
@@ -159,6 +161,24 @@ def pawnPromotion_redrawAll(app, canvas):
     loadPieces(app, canvas)
     pawnPromotion_loadPieces(app, canvas)
     canvas.create_text(app.width/2, 950, text='Pawn Promotion', font='Times 26 bold')
+
+#######################################################
+# Waiting Page #
+#######################################################
+
+def waiting_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+    canvas.create_text(app.width/2, 900, text="Waiting for Opponent's Move", font='Times 26 bold')
+
+def waiting_timerFired(app):
+    try:
+    # Tries to get game from server
+        app.game=app.n.send("get")
+    except:
+        app.mode="disconnected"
+    if not app.game.getWent(app.player):
+        app.mode="gameMode"
 
 #######################################################
 # Game Mode #
@@ -285,6 +305,13 @@ def gameMode_timerFired(app):
 def gameMode_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
+    if app.game==None: 
+        pass
+    else:
+        if app.game.getWent(app.player):
+            canvas.create_text(app.width/2, 900, text="Waiting for Opponent's Move", font='Times 26 bold')
+        else:
+            canvas.create_text(app.width/2, 900, text="Your Move", font='Times 26 bold')
 
 #######################################################
 # # Main App #

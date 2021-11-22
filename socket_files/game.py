@@ -18,7 +18,7 @@ class Game(object):
         self.p0move=()
         self.p1move=()
         self.p0Went=False
-        self.p1Went=False
+        self.p1Went=True
         self.enPassant=None
         self.winner=None
         self.over=False

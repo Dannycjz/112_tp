@@ -47,14 +47,14 @@ def landingPage_mousePressed(app, event):
         app.n.connect(app.player)
         app.pieces=init_piece(app)
         app.kingLoc=(7, 4)
-        app.mode="gameMode"
+        app.mode="wait"
         print("playing as:", app.player)
     elif (x in range(int(btn2X0), int(btn2X1))) and (y in range(int(btn2Y0), int(btn2Y1))):
         app.player=1
         app.n.connect(app.player)
         app.pieces=init_piece(app)
         app.kingLoc=(7, 4)
-        app.mode="gameMode"
+        app.mode="wait"
         print("playing as:", app.player)
     else:pass
 
@@ -66,19 +66,35 @@ def landingPage_keyPressed(app, event):
 #######################################################
 
 def rejected_redrawAll(app, canvas):
-    font = 'Arial 26 bold'
     canvas.create_text(app.width/2, app.height/2, 
-                        text='No white player online yet, please try again later', font=font)
+                        text='No white player online yet, please try again later', font='Times 26 bold')
 
 def rejected_keyPressed(app, event):
     pass
+
+#######################################################
+# Waiting Page #
+#######################################################
+
+def wait_redrawAll(app, canvas):
+    canvas.create_text(app.width/2, app.height/2, 
+            text='Waiting for other player...', font='Times 26 bold')
+
+def wait_timerFired(app):
+    try:
+    # Tries to get game from server
+        app.game=app.n.send("get")
+    except:
+        app.mode="disconnected"
+    if app.game.connected():
+        app.mode="gameMode"
 
 #######################################################
 # Disconnected Page #
 #######################################################
 
 def disconnected_redrawAll(app, canvas):
-    font = 'Arial 26 bold'
+    font = 'Times 26 bold'
     canvas.create_text(app.width/2, app.height/2, 
                         text='Your Opponent Disconnected', font=font)
     canvas.create_text(app.width/2, (app.height/2)+100, 
@@ -127,8 +143,10 @@ def pawnPromotion_loadPieces(app, canvas):
 def pawnPromotion_mousePressed(app, event):
     x=event.x
     y=event.y
-    row=app.promotingPawn[0]
-    col=app.promotingPawn[1]
+    currR=app.promotingPawn[0]
+    currC=app.promotingPawn[1]
+    row=app.promotingPawn[2]
+    col=app.promotingPawn[3]
     queenBtn=((app.width/5)-(app.cellSize/2), ((app.width/5))+(app.cellSize/2), 
                 890-(app.cellSize/2), 890+(app.cellSize/2))
     bishopBtn=(((app.width/5)*2)-(app.cellSize/2), ((app.width/5)*2)+(app.cellSize/2), 
@@ -140,21 +158,33 @@ def pawnPromotion_mousePressed(app, event):
     if x in range(int(queenBtn[0]), int(queenBtn[1])) and y in range(int(queenBtn[2]), int(queenBtn[3])):
         app.pieces[row][col]=(app.player, "queen")
         app.n.send("promotedPawnToQueen")
+        app.n.send((currR, currC, row, col))
+        app.n.send("setWent")
+        app.updated=False
         app.promotingPawn=None
         app.mode="gameMode"
     elif x in range(int(bishopBtn[0]), int(bishopBtn[1])) and y in range(int(bishopBtn[2]), int(bishopBtn[3])):
         app.pieces[row][col]=(app.player, "bishop")
         app.n.send("promotedPawnToBishop")
+        app.n.send((currR, currC, row, col))
+        app.n.send("setWent")
+        app.updated=False
         app.promotingPawn=None
         app.mode="gameMode"
     elif x in range(int(knightBtn[0]), int(knightBtn[1])) and y in range(int(knightBtn[2]), int(knightBtn[3])):
         app.pieces[row][col]=(app.player, "knight")
         app.n.send("promotedPawnToKnight")
+        app.n.send((currR, currC, row, col))
+        app.n.send("setWent")
+        app.updated=False
         app.promotingPawn=None
         app.mode="gameMode"
     elif x in range(int(rookBtn[0]), int(rookBtn[1])) and y in range(int(rookBtn[2]), int(rookBtn[3])):
         app.pieces[row][col]=(app.player, "rook")
         app.n.send("promotedPawnToRook")
+        app.n.send((currR, currC, row, col))
+        app.n.send("setWent")
+        app.updated=False
         app.promotingPawn=None
         app.mode="gameMode"
 
@@ -270,28 +300,20 @@ def gameMode_timerFired(app):
                         app.pieces[row][col-2]=(None, "empty")
                 elif app.game.promotingPawnToQueen:
                     print("promoting pawn to queen")
-                    pawnR=app.lastMove[3]
-                    pawnC=app.lastMove[4]
-                    color=app.lastMove[0][0]
-                    app.pieces[pawnR][pawnC]=(color, "queen")
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "queen")
                     app.n.send("resetPawnPromotion")
                 elif app.game.promotingPawnToBishop:
-                    pawnR=app.lastMove[3]
-                    pawnC=app.lastMove[4]
-                    color=app.lastMove[0][0]
-                    app.pieces[pawnR][pawnC]=(color, "bishop")
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "bishop")
                     app.n.send("resetPawnPromotion")
                 elif app.game.promotingPawnToKnight:
-                    pawnR=app.lastMove[3]
-                    pawnC=app.lastMove[4]
-                    color=app.lastMove[0][0]
-                    app.pieces[pawnR][pawnC]=(color, "knight")
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "knight")
                     app.n.send("resetPawnPromotion")
                 elif app.game.promotingPawnToRook:
-                    pawnR=app.lastMove[3]
-                    pawnC=app.lastMove[4]
-                    color=app.lastMove[0][0]
-                    app.pieces[pawnR][pawnC]=(color, "rook")
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "rook")
                     app.n.send("resetPawnPromotion")
                 app.lastMove=(piece, currR, currC, row, col)
                 update_killzones(app)
@@ -651,39 +673,42 @@ def makeMove(app, row, col, currR, currC):
 # and send data to the server
 def movePiece(app, row, col, currR, currC):
     if isValidMove(app, row, col, currR, currC):
-        app.n.send((currR, currC, row, col))
-        app.n.send("setWent")
-        app.updated=False
-        # En Passant
-        if ((app.pieces[currR][currC][1]=="pawn") and 
-            (col!=currC) and 
-            (app.pieces[row][col][0]==None)):
-            # Kill the piece during an En Passant
-            app.pieces[currR][col]=(None, "empty")
-            print("EnPassant at:", currR, currC, row, col)
-            app.n.send("EnPassant")
-        elif app.pieces[currR][currC][1]=="king":
-            # Moves the rook in right castling
-            if (row==currR) and (col==currC+2):
-                rook=app.pieces[row][col+1]
-                app.pieces[row][col-1]=rook
-                app.pieces[row][col+1]=(None, "empty")
-                app.n.send("RightCastling")
-            # Moves the rook in left castling
-            elif (row==currR) and (col==currC-2):
-                rook=app.pieces[row][col-2]
-                app.pieces[row][col+1]=rook
-                app.pieces[row][col-2]=(None, "empty")
-                app.n.send("LeftCastling")
-        else:
-            app.n.send("resetSpecialMoves")
-        makeMove(app, row, col, currR, currC)
-        clearOutlines(app)
         # Checks if the move just made enables the player to promote a pawn
-        if ((app.pieces[row][col][1]=="pawn") and
+        if ((app.pieces[currR][currC][1]=="pawn") and
             (row==0)):
             app.mode="pawnPromotion"
-            app.promotingPawn=(row, col)
+            app.promotingPawn=(currR, currC, row, col)
+            app.n.send("resetSpecialMoves")
+            makeMove(app, row, col, currR, currC)
+            clearOutlines(app)
+        else:
+            app.n.send((currR, currC, row, col))
+            app.n.send("setWent")
+            app.updated=False
+            # En Passant
+            if ((app.pieces[currR][currC][1]=="pawn") and 
+                (col!=currC) and 
+                (app.pieces[row][col][0]==None)):
+                # Kill the piece during an En Passant
+                app.pieces[currR][col]=(None, "empty")
+                print("EnPassant at:", currR, currC, row, col)
+                app.n.send("EnPassant")
+            elif app.pieces[currR][currC][1]=="king":
+                # Moves the rook in right castling
+                if (row==currR) and (col==currC+2):
+                    rook=app.pieces[row][col+1]
+                    app.pieces[row][col-1]=rook
+                    app.pieces[row][col+1]=(None, "empty")
+                    app.n.send("RightCastling")
+                # Moves the rook in left castling
+                elif (row==currR) and (col==currC-2):
+                    rook=app.pieces[row][col-2]
+                    app.pieces[row][col+1]=rook
+                    app.pieces[row][col-2]=(None, "empty")
+                    app.n.send("LeftCastling")
+            else:
+                app.n.send("resetSpecialMoves")
+            makeMove(app, row, col, currR, currC)
             clearOutlines(app)
     # Clear outlines
     else:

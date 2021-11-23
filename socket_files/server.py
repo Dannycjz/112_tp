@@ -30,9 +30,9 @@ except socket.error as e:
 s.listen()
 print("Waiting for a connection, Server Started")
 
-connected=set()
 games={}
 idCount=0
+gameId=0
 
 '''
 Code inspired by 
@@ -130,6 +130,15 @@ def client_thread(conn, player, gameId):
     idCount-=1
     conn.close()
 
+# def createGame(games, gameId, conn, player):
+#     games[gameId]=Game(gameId)
+#     games[gameId].open[int(player)] = False
+#     print(f"Created a new game...:{gameId}")
+#     print(games)
+#     start_new_thread(client_thread, (conn, int(player), gameId))
+
+# def joinGame(games, gameId, conn, player):
+
 '''
 Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
@@ -147,20 +156,40 @@ while True:
 
     # Keeps track of how many people are connected to the server
     idCount+=1
-    gameId=(idCount-1)//2
+
+    # Keeps track of whether the player is connected into a game
+    connected=False
     
     # Creates a new game if there are an odd number of connections
-    if (idCount%2==1) and (int(player)==0):
+    if len(games.items())==0:
         games[gameId]=Game(gameId)
+        games[gameId].open[int(player)] = False
         print(f"Created a new game...:{gameId}")
         print(games)
         start_new_thread(client_thread, (conn, int(player), gameId))
-    elif idCount%2==1:
-        conn.close()
-        idCount-=1
-        print("Connection closed", addr)
     else:
-        games[gameId].ready = True
-        print(f"Second player connected to game{gameId}")
-        print(games)
-        start_new_thread(client_thread, (conn, int(player), gameId))
+        # Checks all current games to see if there's an open spot
+        for gameId in games:
+            game=games[gameId]
+            if game.open[int(player)]:
+                games[gameId].ready=True
+                games[gameId].open[int(player)] = False
+                print(f"Second player connected to game{gameId}")
+                print(games)
+                start_new_thread(client_thread, (conn, int(player), gameId))
+                connected=True
+                break
+        if connected==False:
+            # Opens a new game if no current ones are open
+            gameId+=1
+            games[gameId]=Game(gameId)
+            games[gameId].open[int(player)] = False
+            print(f"Created a new game...:{gameId}")
+            print(games)
+            start_new_thread(client_thread, (conn, int(player), gameId))
+            connected=True
+    
+    for gameId in games:
+        print(games[gameId].open, gameId)
+
+

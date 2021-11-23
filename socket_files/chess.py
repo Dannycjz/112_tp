@@ -8,8 +8,8 @@ from network import Network
 
 def landingPage_redrawAll(app, canvas):
     centerX=app.width/2
-    btnXSize=200
-    btnYSize=100
+    btnXSize=100
+    btnYSize=50
     btn1Y0=(app.height/2)+100
     btn1X1=centerX-100
     btn1X0=btn1X1-btnXSize
@@ -110,7 +110,7 @@ def disconnected_keyPressed(app, event):
 def victory_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    canvas.create_text(app.width/2, 900, text='You won!', font='Times 26 bold')
+    canvas.create_text(app.width/2, app.height-80, text='You won!', font='Times 26 bold')
 
 #######################################################
 # Defeat Page #
@@ -119,14 +119,14 @@ def victory_redrawAll(app, canvas):
 def defeat_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    canvas.create_text(app.width/2, 900, text='You lost!', font='Times 26 bold')
+    canvas.create_text(app.width/2, app.height-80, text='You lost!', font='Times 26 bold')
 
 #######################################################
 # Pawn Promotion Page #
 #######################################################
 
 def pawnPromotion_loadPieces(app, canvas):
-    y=890
+    y=app.height-80
     possiblePieces=["queen", "bishop", "knight", "rook"]
     for index in range(4):
         if app.player==0:
@@ -143,18 +143,19 @@ def pawnPromotion_loadPieces(app, canvas):
 def pawnPromotion_mousePressed(app, event):
     x=event.x
     y=event.y
+    center=app.height-80
     currR=app.promotingPawn[0]
     currC=app.promotingPawn[1]
     row=app.promotingPawn[2]
     col=app.promotingPawn[3]
     queenBtn=((app.width/5)-(app.cellSize/2), ((app.width/5))+(app.cellSize/2), 
-                890-(app.cellSize/2), 890+(app.cellSize/2))
+                center-(app.cellSize/2), center+(app.cellSize/2))
     bishopBtn=(((app.width/5)*2)-(app.cellSize/2), ((app.width/5)*2)+(app.cellSize/2), 
-                890-(app.cellSize/2), 890+(app.cellSize/2))
+                center-(app.cellSize/2), center+(app.cellSize/2))
     knightBtn=(((app.width/5)*3)-(app.cellSize/2), ((app.width/5)*3)+(app.cellSize/2), 
-                890-(app.cellSize/2), 890+(app.cellSize/2))
+                center-(app.cellSize/2), center+(app.cellSize/2))
     rookBtn=(((app.width/5)*4)-(app.cellSize/2), ((app.width/5)*4)+(app.cellSize/2), 
-                890-(app.cellSize/2), 890+(app.cellSize/2))
+                center-(app.cellSize/2), center+(app.cellSize/2))
     if x in range(int(queenBtn[0]), int(queenBtn[1])) and y in range(int(queenBtn[2]), int(queenBtn[3])):
         app.pieces[row][col]=(app.player, "queen")
         app.n.send("promotedPawnToQueen")
@@ -192,7 +193,7 @@ def pawnPromotion_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
     pawnPromotion_loadPieces(app, canvas)
-    canvas.create_text(app.width/2, 950, text='Pawn Promotion', font='Times 26 bold')
+    canvas.create_text(app.width/2, app.height-30, text='Pawn Promotion', font='Times 18 bold')
 
 #######################################################
 # Waiting Page #
@@ -201,7 +202,7 @@ def pawnPromotion_redrawAll(app, canvas):
 def waiting_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    canvas.create_text(app.width/2, 900, text="Waiting for Opponent's Move", font='Times 26 bold')
+    canvas.create_text(app.width/2, app.height-50, text="Waiting for Opponent's Move", font='Times 18 bold')
 
 def waiting_timerFired(app):
     try:
@@ -335,9 +336,9 @@ def gameMode_redrawAll(app, canvas):
         pass
     else:
         if app.game.getWent(app.player):
-            canvas.create_text(app.width/2, 900, text="Waiting for Opponent's Move", font='Times 26 bold')
+            canvas.create_text(app.width/2, app.height-80, text="Waiting for Opponent's Move", font='Times 18 bold')
         else:
-            canvas.create_text(app.width/2, 900, text="Your Move", font='Times 26 bold')
+            canvas.create_text(app.width/2, app.height-80, text="Your Move", font='Times 18 bold')
 
 #######################################################
 # # Main App # #
@@ -369,7 +370,7 @@ def appStarted(app):
     app.cellSize=min(app.width, app.height)/8
     imageUrl="http://clipart-library.com/images/pcqrGKzLi.png"
     #imageUrl="https://www.clipartmax.com/png/middle/455-4559543_chess-pieces-sprite-chess-pieces-sprite-sheet.png"
-    app.chessSprites=app.loadImage(imageUrl)
+    app.chessSprites=app.scaleImage(app.loadImage(imageUrl), 2/3)
     # Initates dicts that store the sprites of chess pieces
     app.blackPieces=dict()
     app.whitePieces=dict()
@@ -1190,7 +1191,7 @@ def loadPieces(app, canvas):
             canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
 
 def chessAnimation():
-    runApp(width=800, height=1000)
+    runApp(width=480, height=600)
 
 if __name__=="__main__":
     chessAnimation()

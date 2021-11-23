@@ -14,7 +14,7 @@ Code basically copied from
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 '''
 # Input Local IPV4 Address
-HOST = "172.26.19.215"
+HOST = "172.26.49.159"
 port=5555
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -129,15 +129,6 @@ def client_thread(conn, player, gameId):
         pass
     idCount-=1
     conn.close()
-
-# def createGame(games, gameId, conn, player):
-#     games[gameId]=Game(gameId)
-#     games[gameId].open[int(player)] = False
-#     print(f"Created a new game...:{gameId}")
-#     print(games)
-#     start_new_thread(client_thread, (conn, int(player), gameId))
-
-# def joinGame(games, gameId, conn, player):
 
 '''
 Code inspired by

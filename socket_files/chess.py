@@ -318,7 +318,7 @@ def gameMode_redrawAll(app, canvas):
             canvas.create_text(app.width/2, 900, text="Your Move", font='Times 26 bold')
 
 #######################################################
-# # Main App #
+# # Main App # #
 #######################################################
 
 def appStarted(app):

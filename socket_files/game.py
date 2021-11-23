@@ -8,8 +8,11 @@ class Game(object):
     https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
     Changed the went attribute to indicate which player has went
     Changed the move attribute to tuples instead of a list
-    Added attributes blackwins/whiteWins
+    Added attributes winner to indicate which player won
     Added attribute over to indicate game over state
+    Added attributes to represent special moves 
+    Added attribute open to represent which player(s) are currently connected
+    Added attribute updated to represent which local boards are up to date
     """
     def __init__(self, id):
         self.updated=[True, True]
@@ -44,7 +47,7 @@ class Game(object):
             return self.p1move
         else:
             return self.p0move
-
+    
     # Get Went status
     def getWent(self, player):
         if player==0:

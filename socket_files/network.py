@@ -18,8 +18,10 @@ class Network(object):
         self.addr=(self.HOST, self.port)
 
     '''
-    Function copied from:
+    Function inspired by:
     www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+    Changed the actions in the try method to immediately send the player-
+    -choice to the server upon connection
     '''
     def connect(self, player):
         # Error handling

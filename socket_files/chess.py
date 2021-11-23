@@ -369,11 +369,13 @@ def appStarted(app):
                 False, False, False, False]for i in range(8)]
     app.cellSize=min(app.width, app.height)/8
     imageUrl="http://clipart-library.com/images/pcqrGKzLi.png"
+    image1=app.loadImage('chessSprites.png')
     #imageUrl="https://www.clipartmax.com/png/middle/455-4559543_chess-pieces-sprite-chess-pieces-sprite-sheet.png"
-    app.chessSprites=app.scaleImage(app.loadImage(imageUrl), 2/3)
+    # app.chessSprites=app.scaleImage(app.loadImage(imageUrl), 2/3)
+    app.chessSprites=app.scaleImage(image1, 2/3)
     # Initates dicts that store the sprites of chess pieces
     app.blackPieces=dict()
-    app.whitePieces=dict()
+    app.whitePieces=dict() 
     init_sprites(app)
     # Initiates 2D list to represent valid moves 
     app.validMoves=[[False, False, False, False, 

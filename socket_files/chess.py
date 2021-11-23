@@ -7,26 +7,30 @@ from network import Network
 #######################################################
 
 def landingPage_redrawAll(app, canvas):
-    centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    btn1Y0=(app.height/2)+100
-    btn1X1=centerX-100
-    btn1X0=btn1X1-btnXSize
-    btn1Y1=btn1Y0+btnYSize
-    btn1CenterX=(btn1X0+btn1X1)/2
-    btn1CenterY=(btn1Y0+btn1Y1)/2
-    btn2X0=centerX+100
-    btn2Y0=(app.height/2)+100
-    btn2X1=btn2X0+btnXSize
-    btn2Y1=btn2Y0+btnYSize
-    btn2CenterX=(btn2X0+btn2X1)/2
-    btn2CenterY=(btn2Y0+btn2Y1)/2
-    canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
-    canvas.create_rectangle(btn1X0, btn1Y0, btn1X1, btn1Y1, fill="white")
-    canvas.create_rectangle(btn2X0, btn2Y0, btn2X1, btn2Y1, fill="black")
-    canvas.create_text(btn1CenterX, btn1CenterY, text='Play as White', fill='black', font='Times 13')
-    canvas.create_text(btn2CenterX, btn2CenterY, text='Play as Black', fill='white', font='Times 13')
+    if app.connecting:
+        canvas.create_text(app.width/2, app.height/2, 
+                        text='Connecting to server...', font='Times 26 bold')
+    else:
+        centerX=app.width/2
+        btnXSize=100
+        btnYSize=50
+        btn1Y0=(app.height/2)+100
+        btn1X1=centerX-100
+        btn1X0=btn1X1-btnXSize
+        btn1Y1=btn1Y0+btnYSize
+        btn1CenterX=(btn1X0+btn1X1)/2
+        btn1CenterY=(btn1Y0+btn1Y1)/2
+        btn2X0=centerX+100
+        btn2Y0=(app.height/2)+100
+        btn2X1=btn2X0+btnXSize
+        btn2Y1=btn2Y0+btnYSize
+        btn2CenterX=(btn2X0+btn2X1)/2
+        btn2CenterY=(btn2Y0+btn2Y1)/2
+        canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
+        canvas.create_rectangle(btn1X0, btn1Y0, btn1X1, btn1Y1, fill="white")
+        canvas.create_rectangle(btn2X0, btn2Y0, btn2X1, btn2Y1, fill="black")
+        canvas.create_text(btn1CenterX, btn1CenterY, text='Play as White', fill='black', font='Times 13')
+        canvas.create_text(btn2CenterX, btn2CenterY, text='Play as Black', fill='white', font='Times 13')
 
 def landingPage_mousePressed(app, event):
     x=event.x
@@ -43,22 +47,45 @@ def landingPage_mousePressed(app, event):
     btn2X1=btn2X0+btnXSize
     btn2Y1=btn2Y0+btnYSize
     if (x in range(int(btn1X0), int(btn1X1))) and (y in range(int(btn1Y0), int(btn1Y1))):
+        app.connecting=True
         app.player=0
-        app.n.connect(app.player)
-        app.pieces=init_piece(app)
-        app.kingLoc=(7, 4)
-        app.mode="wait"
-        print("playing as:", app.player)
+        # Try to connect the player
+        status=app.n.connect(app.player)
+        if status==False:
+            app.mode="failed"
+        else:
+            app.pieces=init_piece(app)
+            app.kingLoc=(7, 4)
+            app.mode="wait"
+            print("playing as:", app.player)
     elif (x in range(int(btn2X0), int(btn2X1))) and (y in range(int(btn2Y0), int(btn2Y1))):
         app.player=1
-        app.n.connect(app.player)
-        app.pieces=init_piece(app)
-        app.kingLoc=(7, 4)
-        app.mode="wait"
-        print("playing as:", app.player)
+        app.connecting=True
+        # Try to connect the player
+        status=app.n.connect(app.player)
+        if status==False:
+            app.mode="failed"
+        else:
+            app.pieces=init_piece(app)
+            app.kingLoc=(7, 4)
+            app.mode="wait"
+            print("playing as:", app.player)
     else:pass
 
 def landingPage_keyPressed(app, event):
+    pass
+
+#######################################################
+# Failed Page #
+#######################################################
+
+def failed_redrawAll(app, canvas):
+    canvas.create_text(app.width/2, app.height/2, 
+                        text='Failed to connect to server', font='Times 26 bold')
+    canvas.create_text(app.width/2, (app.height/2)+100, 
+                        text='Check server status/IP Address/Port settings', font='Times 18 bold')
+
+def failed_keyPressed(app, event):
     pass
 
 #######################################################
@@ -347,6 +374,7 @@ def gameMode_redrawAll(app, canvas):
 def appStarted(app):
     app.n=Network()
     app.player=None
+    app.connecting=False
     app.game=None
     app.mode = 'landingPage'
     app.board=[[]for i in range(8)]

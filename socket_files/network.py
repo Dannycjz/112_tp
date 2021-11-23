@@ -29,7 +29,7 @@ class Network(object):
             self.client.connect(self.addr)
             self.client.send(str.encode(str(player)))
         except:
-            pass
+            return False
     
     '''
     Function inspired by:

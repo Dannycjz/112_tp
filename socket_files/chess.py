@@ -39,7 +39,7 @@ def landingPage_mousePressed(app, event):
     if (x in range(int(AIBtn[0]), int(AIBtn[2]))) and (y in range(int(AIBtn[1]), int(AIBtn[3]))):
         app.mode="single"
     elif (x in range(int(MultBtn[0]), int(MultBtn[2]))) and (y in range(int(MultBtn[1]), int(MultBtn[3]))):
-        app.mode="mult"
+        app.mode="multi"
     else:pass
 
 def landingPage_keyPressed(app, event):
@@ -61,29 +61,33 @@ def multi_redrawAll(app, canvas):
                 centerX-100, (app.height/2)+100+btnYSize)
         blackBtn=(centerX+100, (app.height/2)+100, 
                 centerX+100+btnXSize, (app.height/2)+100+btnYSize)
+        backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
         whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
         blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
-        canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
+        backBtnCenter=((backBtn[0]+backBtn[2])/2, (backBtn[1]+backBtn[3])/2)
+        canvas.create_text(app.width/2, (app.height/2)-200, text='Multiplayer', font='Times 26 bold')
+        canvas.create_text(app.width/2, (app.height/2), text='Please choose your side', font='Times 26 bold')
         canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
         canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
+        canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
         canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font='Times 13')
         canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font='Times 13')
+        canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font='Times 13')
 
 def multi_mousePressed(app, event):
     x=event.x
     y=event.y
-    btnXSize=200
-    btnYSize=100
     centerX=app.width/2
-    btn1Y0=(app.height/2)+100
-    btn1X1=centerX-100
-    btn1X0=btn1X1-btnXSize
-    btn1Y1=btn1Y0+btnYSize
-    btn2X0=centerX+100
-    btn2Y0=(app.height/2)+100
-    btn2X1=btn2X0+btnXSize
-    btn2Y1=btn2Y0+btnYSize
-    if (x in range(int(btn1X0), int(btn1X1))) and (y in range(int(btn1Y0), int(btn1Y1))):
+    btnXSize=100
+    btnYSize=50
+    whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
+            centerX-100, (app.height/2)+100+btnYSize)
+    blackBtn=(centerX+100, (app.height/2)+100, 
+            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
+    backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
         app.connecting=True
         app.player=0
         # Try to connect the player
@@ -95,7 +99,7 @@ def multi_mousePressed(app, event):
             app.kingLoc=(7, 4)
             app.mode="wait"
             print("playing as:", app.player)
-    elif (x in range(int(btn2X0), int(btn2X1))) and (y in range(int(btn2Y0), int(btn2Y1))):
+    elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
         app.player=1
         app.connecting=True
         # Try to connect the player
@@ -107,6 +111,8 @@ def multi_mousePressed(app, event):
             app.kingLoc=(7, 4)
             app.mode="wait"
             print("playing as:", app.player)
+    elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
+        app.mode="landingPage"
     else:pass
 
 def multi_keyPressed(app, event):
@@ -117,63 +123,45 @@ def multi_keyPressed(app, event):
 #######################################################
 
 def single_redrawAll(app, canvas):
-    if app.connecting:
-        canvas.create_text(app.width/2, app.height/2, 
-                        text='Connecting to server...', font='Times 26 bold')
-    else:
-        centerX=app.width/2
-        btnXSize=100
-        btnYSize=50
-        whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-                centerX-100, (app.height/2)+100+btnYSize)
-        blackBtn=(centerX+100, (app.height/2)+100, 
-                centerX+100+btnXSize, (app.height/2)+100+btnYSize)
-        whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
-        blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
-        canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
-        canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
-        canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
-        canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font='Times 13')
-        canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font='Times 13')
+    centerX=app.width/2
+    btnXSize=100
+    btnYSize=50
+    whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
+            centerX-100, (app.height/2)+100+btnYSize)
+    blackBtn=(centerX+100, (app.height/2)+100, 
+            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
+    backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
+    blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
+    backBtnCenter=((backBtn[0]+backBtn[2])/2, (backBtn[1]+backBtn[3])/2)
+    canvas.create_text(app.width/2, (app.height/2)-200, text='Singleplayer', font='Times 26 bold')
+    canvas.create_text(app.width/2, (app.height/2), text='Please choose your side', font='Times 26 bold')
+    canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
+    canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
+    canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
+    canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font='Times 13')
+    canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font='Times 13')
+    canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font='Times 13')
 
 def single_mousePressed(app, event):
     x=event.x
     y=event.y
-    btnXSize=200
-    btnYSize=100
     centerX=app.width/2
-    btn1Y0=(app.height/2)+100
-    btn1X1=centerX-100
-    btn1X0=btn1X1-btnXSize
-    btn1Y1=btn1Y0+btnYSize
-    btn2X0=centerX+100
-    btn2Y0=(app.height/2)+100
-    btn2X1=btn2X0+btnXSize
-    btn2Y1=btn2Y0+btnYSize
-    if (x in range(int(btn1X0), int(btn1X1))) and (y in range(int(btn1Y0), int(btn1Y1))):
-        app.connecting=True
-        app.player=0
-        # Try to connect the player
-        status=app.n.connect(app.player)
-        if status==False:
-            app.mode="failed"
-        else:
-            app.pieces=init_piece(app)
-            app.kingLoc=(7, 4)
-            app.mode="wait"
-            print("playing as:", app.player)
-    elif (x in range(int(btn2X0), int(btn2X1))) and (y in range(int(btn2Y0), int(btn2Y1))):
-        app.player=1
-        app.connecting=True
-        # Try to connect the player
-        status=app.n.connect(app.player)
-        if status==False:
-            app.mode="failed"
-        else:
-            app.pieces=init_piece(app)
-            app.kingLoc=(7, 4)
-            app.mode="wait"
-            print("playing as:", app.player)
+    btnXSize=100
+    btnYSize=50
+    whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
+            centerX-100, (app.height/2)+100+btnYSize)
+    blackBtn=(centerX+100, (app.height/2)+100, 
+            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
+    backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
+        pass
+    elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
+        pass
+    elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
+        app.mode="landingPage"
     else:pass
 
 def single_keyPressed(app, event):

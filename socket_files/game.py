@@ -48,6 +48,12 @@ class Game(object):
         else:
             return self.p0move
     
+    def getOtherPlayer(self, player):
+        if player==0:
+            return 1
+        elif player==1:
+            return 0
+
     # Get Went status
     def getWent(self, player):
         if player==0:

@@ -96,7 +96,7 @@ def multi_mousePressed(app, event):
             app.mode="failed"
         else:
             app.pieces=init_piece(app)
-            app.kingLoc=(7, 4)
+            app.kingLoc=[(7, 4), (0, 4)]
             app.mode="wait"
             print("playing as:", app.player)
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
@@ -108,7 +108,7 @@ def multi_mousePressed(app, event):
             app.mode="failed"
         else:
             app.pieces=init_piece(app)
-            app.kingLoc=(7, 4)
+            app.kingLoc=[(0, 4), (7, 4)]
             app.mode="wait"
             print("playing as:", app.player)
     elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
@@ -157,9 +157,13 @@ def single_mousePressed(app, event):
     backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
             centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
-        pass
+        app.player=0
+        app.pieces=init_piece(app)
+        app.mode="localMode"
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
-        pass
+        app.player=1
+        app.pieces=init_piece(app)
+        app.mode="localMode"
     elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
         app.mode="landingPage"
     else:pass
@@ -206,7 +210,7 @@ def wait_timerFired(app):
     except:
         app.mode="disconnected"
     if app.game.connected():
-        app.mode="gameMode"
+        app.mode="onlineMode"
 
 #######################################################
 # Disconnected Page #
@@ -282,7 +286,7 @@ def pawnPromotion_mousePressed(app, event):
         app.n.send("setWent")
         app.updated=False
         app.promotingPawn=None
-        app.mode="gameMode"
+        app.mode="onlineMode"
     elif x in range(int(bishopBtn[0]), int(bishopBtn[1])) and y in range(int(bishopBtn[2]), int(bishopBtn[3])):
         app.pieces[row][col]=(app.player, "bishop")
         app.n.send("promotedPawnToBishop")
@@ -290,7 +294,7 @@ def pawnPromotion_mousePressed(app, event):
         app.n.send("setWent")
         app.updated=False
         app.promotingPawn=None
-        app.mode="gameMode"
+        app.mode="onlineMode"
     elif x in range(int(knightBtn[0]), int(knightBtn[1])) and y in range(int(knightBtn[2]), int(knightBtn[3])):
         app.pieces[row][col]=(app.player, "knight")
         app.n.send("promotedPawnToKnight")
@@ -298,7 +302,7 @@ def pawnPromotion_mousePressed(app, event):
         app.n.send("setWent")
         app.updated=False
         app.promotingPawn=None
-        app.mode="gameMode"
+        app.mode="onlineMode"
     elif x in range(int(rookBtn[0]), int(rookBtn[1])) and y in range(int(rookBtn[2]), int(rookBtn[3])):
         app.pieces[row][col]=(app.player, "rook")
         app.n.send("promotedPawnToRook")
@@ -306,7 +310,7 @@ def pawnPromotion_mousePressed(app, event):
         app.n.send("setWent")
         app.updated=False
         app.promotingPawn=None
-        app.mode="gameMode"
+        app.mode="onlineMode"
 
 def pawnPromotion_redrawAll(app, canvas):
     drawBoard(app, canvas)
@@ -330,16 +334,20 @@ def waiting_timerFired(app):
     except:
         app.mode="disconnected"
     if not app.game.getWent(app.player):
-        app.mode="gameMode"
+        app.mode="onlineMode"
 
 #######################################################
-# Game Mode #
+# Singleplayer Game Mode #
 #######################################################
 
-def gameMode_mousePressed(app, event):
+def localMode_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+
+def localMode_mousePressed(app, event):
     x=event.x
     y=event.y
-    if not app.game.getWent(app.player) and not app.checkMate:
+    if not app.checkMate[app.player]:
         cell=selectCell(app, x, y)
         if cell!=None:
             (row, col)=cell
@@ -357,26 +365,23 @@ def gameMode_mousePressed(app, event):
                     updateOutlines(app, app.player, row, col)
                     app.makingMove=True
             else:
-                if app.game.connected():
-                    currR=app.oldLoc[0]
-                    currC=app.oldLoc[1]
-                    if not isChecked(app):
-                        movePiece(app, row, col, currR, currC)
-                    else:
-                        if isGoodMove(app, row, col, currR, currC):
-                            selectPiece(app, currR, currC)
-                            movePiece(app, row, col, currR, currC)
-                        else:
-                            unselectPiece(app)
-                            clearOutlines(app)
+                currR=app.oldLoc[0]
+                currC=app.oldLoc[1]
+                if not isChecked(app, app.player):
+                    localMovePiece(app, row, col, currR, currC)
                 else:
-                    pass
+                    if isGoodMove(app, row, col, currR, currC):
+                        selectPiece(app, currR, currC)
+                        localMovePiece(app, row, col, currR, currC)
+                    else:
+                        unselectPiece(app)
+                        clearOutlines(app)
         else:
             pass
     else:
         pass
 
-def gameMode_timerFired(app):
+def onlineMode_timerFired(app):
     try:
     # Tries to get game from server
         app.game=app.n.send("get")
@@ -395,6 +400,7 @@ def gameMode_timerFired(app):
             # Get the move and make the move on local board
             move=app.game.getMove(app.player)
             if move!=():
+                otherPlayer=app.game.getOtherPlayer(app.player)
                 print("Other player made a move", move)
                 (currR, currC, row, col)=move
                 # Mirror the move 
@@ -402,6 +408,9 @@ def gameMode_timerFired(app):
                 row=7-row
                 piece=selectPiece(app, currR, currC)
                 makeMove(app, row, col, currR, currC)
+                # Updates the other player's king location if they moved their king
+                if (app.pieces[currR][currC][1]=="king"):
+                    app.kingLoc[otherPlayer]=(currR, currC)
                 status=app.game.getCastlingStatus(app.player)
                 # Delete the piece if En Passant
                 if app.game.getEnPassant(app.player):
@@ -438,8 +447,8 @@ def gameMode_timerFired(app):
                 app.lastMove=(piece, currR, currC, row, col)
                 update_killzones(app)
                 # Checks if there is a checkmate
-                if checkMate(app):
-                    app.checkMate=True
+                if checkMate(app, app.player):
+                    app.checkMate[app.player]=True
                     app.n.send("Checkmate")
                     app.mode="defeat"
                     print("CheckMate")
@@ -448,7 +457,127 @@ def gameMode_timerFired(app):
             else:
                 pass
 
-def gameMode_redrawAll(app, canvas):
+#######################################################
+# Online Game Mode #
+#######################################################
+
+def onlineMode_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    if not app.game.getWent(app.player) and not app.checkMate[app.player]:
+        cell=selectCell(app, x, y)
+        if cell!=None:
+            (row, col)=cell
+            # If user is not currently making a move
+            # Either select a piece or clear moves/outlines
+            if app.makingMove is False:
+                piece=selectPiece(app, row, col)
+                updateKZOutlines(app, app.player)
+                if piece is None: pass
+                elif piece[0]!=app.player:
+                    unselectPiece(app)
+                    clearOutlines(app)
+                    app.makingMove=False
+                else:
+                    updateOutlines(app, app.player, row, col)
+                    app.makingMove=True
+            else:
+                if app.game.connected():
+                    currR=app.oldLoc[0]
+                    currC=app.oldLoc[1]
+                    if not isChecked(app, app.player):
+                        onlineMovePiece(app, row, col, currR, currC)
+                    else:
+                        if isGoodMove(app, row, col, currR, currC):
+                            selectPiece(app, currR, currC)
+                            onlineMovePiece(app, row, col, currR, currC)
+                        else:
+                            unselectPiece(app)
+                            clearOutlines(app)
+                else:
+                    pass
+        else:
+            pass
+    else:
+        pass
+
+def onlineMode_timerFired(app):
+    try:
+    # Tries to get game from server
+        app.game=app.n.send("get")
+    except:
+        app.mode="disconnected"
+    if app.game==None: 
+        app.mode="rejected"
+    else:
+        if app.game.over:
+            if app.game.winner==app.player:
+                app.mode="victory"
+            else:
+                app.mode="defeat"
+        # If local board is not up to date
+        elif not app.game.updated[app.player]:
+            # Get the move and make the move on local board
+            move=app.game.getMove(app.player)
+            if move!=():
+                otherPlayer=app.game.getOtherPlayer(app.player)
+                print("Other player made a move", move)
+                (currR, currC, row, col)=move
+                # Mirror the move 
+                currR=7-currR
+                row=7-row
+                piece=selectPiece(app, currR, currC)
+                makeMove(app, row, col, currR, currC)
+                # Updates the other player's king location if they moved their king
+                if (app.pieces[currR][currC][1]=="king"):
+                    app.kingLoc[otherPlayer]=(currR, currC)
+                status=app.game.getCastlingStatus(app.player)
+                # Delete the piece if En Passant
+                if app.game.getEnPassant(app.player):
+                    app.pieces[currR][col]=(None, "empty")
+                # If the other player just made a castling move:
+                elif status[0]:
+                    # Move the rook for right castling
+                    if status[1]=="right":
+                        rook=app.pieces[row][col+1]
+                        app.pieces[row][col-1]=rook
+                        app.pieces[row][col+1]=(None, "empty")
+                    # Move the rook for left castling
+                    elif status[1]=="left":
+                        rook=app.pieces[row][col-2]
+                        app.pieces[row][col+1]=rook
+                        app.pieces[row][col-2]=(None, "empty")
+                elif app.game.promotingPawnToQueen:
+                    print("promoting pawn to queen")
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "queen")
+                    app.n.send("resetPawnPromotion")
+                elif app.game.promotingPawnToBishop:
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "bishop")
+                    app.n.send("resetPawnPromotion")
+                elif app.game.promotingPawnToKnight:
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "knight")
+                    app.n.send("resetPawnPromotion")
+                elif app.game.promotingPawnToRook:
+                    color=app.pieces[row][col][0]
+                    app.pieces[row][col]=(color, "rook")
+                    app.n.send("resetPawnPromotion")
+                app.lastMove=(piece, currR, currC, row, col)
+                update_killzones(app)
+                # Checks if there is a checkmate
+                if checkMate(app, app.player):
+                    app.checkMate[app.player]=True
+                    app.n.send("Checkmate")
+                    app.mode="defeat"
+                    print("CheckMate")
+                app.n.send("Updated")
+                print("Your Turn")
+            else:
+                pass
+
+def onlineMode_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
     if app.game==None: 
@@ -472,13 +601,13 @@ def appStarted(app):
     app.board=[[]for i in range(8)]
     # Initates boolean variable to detect whether a king is being checked
     app.check=False
-    app.checkMate=False
+    app.checkMate=[False, False]
     # Initiates variables to check for castling eligibility
-    app.rightCastling=True
-    app.leftCastling=True
-    app.leftRookMoved=False
-    app.rightRookMoved=False
-    app.kingMoved=False
+    app.rightCastling=[True, True]
+    app.leftCastling=[True, True]
+    app.leftRookMoved=[False, False]
+    app.rightRookMoved=[False, False]
+    app.kingMoved=[False, False]
     # Initiates a variable to store the location of the king
     app.kingLoc=None 
     app.pieces=None
@@ -603,10 +732,6 @@ def value(app):
                 val=app.values[(color, piece)]
                 result+=val
     return val
-
-# Checks if 
-def terminal(app):
-    pass
 
 # Minmax algo where white is minimizing and black is maximizing
 def minimax(self, board):
@@ -762,14 +887,14 @@ def update_whiteKZ(app, pawnSet, rookSet, knightSet,
     app.whiteKZ[currR][currC]=False
 
 # Updates castling eligibility
-def updateCastlingEligibility(app):
-    if app.kingMoved:
-        app.rightCastling=False
-        app.leftCastling=False
-    elif app.leftRookMoved:
-        app.leftCastling=False
-    elif app.rightRookMoved:
-        app.rightCastling=False
+def updateCastlingEligibility(app, player):
+    if app.kingMoved[player]:
+        app.rightCastling[player]=False
+        app.leftCastling[player]=False
+    elif app.leftRookMoved[player]:
+        app.leftCastling[player]=False
+    elif app.rightRookMoved[player]:
+        app.rightCastling[player]=False
 
 ###############################################################################
 # Board Cosmetic Functions
@@ -836,19 +961,20 @@ def isGoodMove(app, row, col, currR, currC):
 def tryMove(app, row, col, currR, currC):
     myPiece=app.pieces[currR][currC]
     otherPiece=app.pieces[row][col]
+    player=myPiece[0]
     # Update the king's location if the player is moving his king
-    if myPiece[0]==app.player and myPiece[1]=="king":
-        app.kingLoc=(row, col)
+    if myPiece[1]=="king":
+        app.kingLoc[player]=(row, col)
     app.pieces[currR][currC]=(None, "empty")
     app.pieces[row][col]=myPiece
     update_killzones(app)
-    if isChecked(app):
+    if isChecked(app, player):
         result=False
     else:
         result=True
     # Reset the move
     if myPiece[0]==app.player and myPiece[1]=="king":
-        app.kingLoc=(currR, currC)
+        app.kingLoc[app.player]=(currR, currC)
     app.pieces[row][col]=otherPiece
     app.pieces[currR][currC]=myPiece
     update_killzones(app)
@@ -1023,8 +1149,8 @@ def isValidKingMove(app, currR, currC, row, col, color):
 # Checks if move from [currR][currC] to [row][col] is 
 # a valid right white castling move
 def isValidRightWhiteCastling(app, currR, currC, row, col):
-    if (app.rightCastling and 
-        (not isChecked(app)) and 
+    if (app.rightCastling[0] and 
+        (not isChecked(app, 0)) and 
         (app.pieces[row][col]==(None, "empty")) and 
         (app.pieces[row][col-1]==(None, "empty")) and 
         (not app.blackKZ[row][col]) and 
@@ -1035,8 +1161,8 @@ def isValidRightWhiteCastling(app, currR, currC, row, col):
 # Checks if move from [currR][currC] to [row][col] is 
 # a valid left white castling move
 def isValidLeftWhiteCastling(app, currR, currC, row, col):
-    if (app.leftCastling and 
-        (not isChecked(app)) and
+    if (app.leftCastling[1] and 
+        (not isChecked(app, 0)) and
         (app.pieces[row][col]==(None, "empty")) and 
         (app.pieces[row][col-1]==(None, "empty")) and 
         (app.pieces[row][col+1]==(None, "empty")) and 
@@ -1048,8 +1174,8 @@ def isValidLeftWhiteCastling(app, currR, currC, row, col):
 # Checks if move from [currR][currC] to [row][col] is 
 # a valid right black castling move
 def isValidRightBlackCastling(app, currR, currC, row, col):
-    if (app.rightCastling and 
-        (not isChecked(app)) and 
+    if (app.rightCastling[1] and 
+        (not isChecked(app, 1)) and 
         (app.pieces[row][col]==(None, "empty")) and 
         (app.pieces[row][col-1]==(None, "empty")) and 
         (not app.whiteKZ[row][col]) and 
@@ -1060,8 +1186,8 @@ def isValidRightBlackCastling(app, currR, currC, row, col):
 # Checks if move from [currR][currC] to [row][col] is 
 # a valid left black castling move
 def isValidLeftBlackCastling(app, currR, currC, row, col):
-    if (app.leftCastling and 
-        (not isChecked(app)) and
+    if (app.leftCastling[1] and 
+        (not isChecked(app, 1)) and
         (app.pieces[row][col]==(None, "empty")) and 
         (app.pieces[row][col-1]==(None, "empty")) and 
         (app.pieces[row][col+1]==(None, "empty")) and 
@@ -1212,30 +1338,67 @@ def getCellBounds(app, row, col):
 # Moves the selected chess piece to the destination cell
 def makeMove(app, row, col, currR, currC):
     piece=app.pieces[currR][currC]
+    player=piece[0]
     # Update the king's location if the player is moving his king
-    if piece[0]==app.player and piece[1]=="king":
-        app.kingLoc=(row, col)
-        app.kingMoved=True
-    elif piece[0]==app.player and piece[1]=="rook" and piece[0]==0:
+    if piece[1]=="king":
+        app.kingLoc[player]=(row, col)
+        app.kingMoved[player]=True
+    elif piece[1]=="rook" and player==0:
         if currC==0:
-            app.leftRookMoved=True
+            app.leftRookMoved[player]=True
         elif currC==7:
-            app.rightRookMoved=True
-    elif piece[0]==app.player and piece[1]=="rook" and piece[0]==1:
+            app.rightRookMoved[player]=True
+    elif piece[1]=="rook" and player==1:
         if currC==0:
-            app.rightRookMoved=True
+            app.rightRookMoved[player]=True
         elif currC==7:
-            app.leftRookMoved=True
+            app.leftRookMoved[app.player]=True
     app.pieces[currR][currC]=(None, "empty")
     app.pieces[row][col]=piece
     update_killzones(app)
-    updateCastlingEligibility(app)
+    updateCastlingEligibility(app, app.player)
     app.oldLoc=None
     app.makingMove=False
 
+# Makes the move based on the piece the user selected locally
+def localMovePiece(app, row, col, currR, currC):
+    if isValidMove(app, row, col, currR, currC):
+        # Checks if the move just made enables the player to promote a pawn
+        if ((app.pieces[currR][currC][1]=="pawn") and
+            (row==0)):
+            app.mode="pawnPromotion"
+            app.promotingPawn=(currR, currC, row, col)
+            makeMove(app, row, col, currR, currC)
+            clearOutlines(app)
+        else:
+            # En Passant
+            if ((app.pieces[currR][currC][1]=="pawn") and 
+                (col!=currC) and 
+                (app.pieces[row][col][0]==None)):
+                # Kill the piece during an En Passant
+                app.pieces[currR][col]=(None, "empty")
+                print("EnPassant at:", currR, currC, row, col)
+            elif app.pieces[currR][currC][1]=="king":
+                # Moves the rook in right castling
+                if (row==currR) and (col==currC+2):
+                    rook=app.pieces[row][col+1]
+                    app.pieces[row][col-1]=rook
+                    app.pieces[row][col+1]=(None, "empty")
+                # Moves the rook in left castling
+                elif (row==currR) and (col==currC-2):
+                    rook=app.pieces[row][col-2]
+                    app.pieces[row][col+1]=rook
+                    app.pieces[row][col-2]=(None, "empty")
+            makeMove(app, row, col, currR, currC)
+            clearOutlines(app)
+    # Clear outlines
+    else:
+        unselectPiece(app)
+        clearOutlines(app)
+
 # Make the move based on the piece the user selected 
 # and send data to the server
-def movePiece(app, row, col, currR, currC):
+def onlineMovePiece(app, row, col, currR, currC):
     if isValidMove(app, row, col, currR, currC):
         # Checks if the move just made enables the player to promote a pawn
         if ((app.pieces[currR][currC][1]=="pawn") and
@@ -1307,15 +1470,16 @@ def selectPiece(app, row, col):
 
 # Returns True if there is a move that breaks the check
 # False otherwise
-def checkMate(app):
-    if app.checkMate: return True
+def checkMate(app, player):
+    if app.checkMate[player]: return True
     else:
-        if isChecked(app):
+        if isChecked(app, player):
             for row in range(8):
                 for col in range(8):
-                    if app.pieces[row][col][0]==app.player:
+                    if app.pieces[row][col][0]==player:
                         if checkMovesFromRowCol(app, row, col):
                             return False
+            app.checkMate[player]=True
             return True
         else:
             return False
@@ -1330,8 +1494,8 @@ def checkMovesFromRowCol(app, currR, currC):
     return False
 
 # Checks if the player's king is being checked
-def isChecked(app):
-    (row, col)=app.kingLoc
+def isChecked(app, player):
+    (row, col)=app.kingLoc[player]
     if app.player==0:
         if app.blackKZ[row][col]: return True
         else: return False

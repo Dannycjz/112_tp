@@ -159,10 +159,12 @@ def single_mousePressed(app, event):
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
         app.player=0
         app.pieces=init_piece(app)
+        app.kingLoc=[(7, 4), (0, 4)]
         app.mode="localMode"
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
         app.player=1
         app.pieces=init_piece(app)
+        app.kingLoc=[(0, 4), (7, 4)]
         app.mode="localMode"
     elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
         app.mode="landingPage"

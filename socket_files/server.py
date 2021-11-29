@@ -134,6 +134,8 @@ def client_thread(conn, player, gameId):
 Code inspired by
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 Added gameId and player assignment to allow players to choose either white or black
+Added a loop through all the existing games to decide whether a new player should join-
+-an existing game or have a new game created for them
 '''
 # continuously checks for connections 
 while True:

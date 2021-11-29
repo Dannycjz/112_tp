@@ -13,13 +13,16 @@ class Network(object):
     '''
     def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Input IPv4 Address
         self.HOST= "172.26.19.215"
         self.port=5555
         self.addr=(self.HOST, self.port)
 
     '''
-    Function copied from:
+    Function inspired by:
     www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
+    Changed the actions in the try method to immediately send the player-
+    -choice to the server upon connection
     '''
     def connect(self, player):
         # Error handling
@@ -27,7 +30,7 @@ class Network(object):
             self.client.connect(self.addr)
             self.client.send(str.encode(str(player)))
         except:
-            pass
+            return False
     
     '''
     Function inspired by:

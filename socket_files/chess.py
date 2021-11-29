@@ -1,4 +1,4 @@
-import tkinter, pickle, random, time
+import tkinter, pickle, random, time, os
 from cmu_112_graphics import *
 from network import Network
 
@@ -7,35 +7,37 @@ from network import Network
 #######################################################
 
 def landingPage_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/37)
     if app.connecting:
         canvas.create_text(app.width/2, app.height/2, 
-                        text='Connecting to server...', font='Times 26 bold')
+                        text='Connecting to server...', font=f'Times {fontSize1} bold')
     else:
         centerX=app.width/2
-        btnXSize=150
-        btnYSize=50
-        AIBtn=(centerX-50-btnXSize, (app.height/2)+100, 
-                centerX-50, (app.height/2)+100+btnYSize)
-        MultBtn=(centerX+50, (app.height/2)+100, 
-                centerX+50+btnXSize, (app.height/2)+100+btnYSize)
+        btnXSize=int(app.width/3.2)
+        btnYSize=int(app.width/12)
+        AIBtn=(centerX-(app.width//9.6)-btnXSize, (app.height/2)+(app.height//6), 
+                centerX-(app.width//9.6), (app.height/2)+(app.height//6)+btnYSize)
+        MultBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
+                centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
         AIBtnCenter=((AIBtn[0]+AIBtn[2])/2, (AIBtn[1]+AIBtn[3])/2)
         MultBtnCenter=((MultBtn[0]+MultBtn[2])/2, (MultBtn[1]+MultBtn[3])/2)
-        canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
+        canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font=f'Times {fontSize1} bold')
         canvas.create_rectangle(AIBtn[0], AIBtn[1], AIBtn[2], AIBtn[3], fill="alice blue")
         canvas.create_rectangle(MultBtn[0], MultBtn[1], MultBtn[2], MultBtn[3], fill="white")
-        canvas.create_text(AIBtnCenter[0], AIBtnCenter[1], text='Play against AI', fill='black', font='Times 13')
-        canvas.create_text(MultBtnCenter[0], MultBtnCenter[1], text='Play Multiplayer', fill='black', font='Times 13')
+        canvas.create_text(AIBtnCenter[0], AIBtnCenter[1], text='Play against AI', fill='black', font=f'Times {fontSize2}')
+        canvas.create_text(MultBtnCenter[0], MultBtnCenter[1], text='Play Multiplayer', fill='black', font=f'Times {fontSize2}')
 
 def landingPage_mousePressed(app, event):
     x=event.x
     y=event.y
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    AIBtn=(centerX-50-btnXSize, (app.height/2)+100, 
-            centerX-50, (app.height/2)+100+btnYSize)
-    MultBtn=(centerX+50, (app.height/2)+100, 
-            centerX+50+btnXSize, (app.height/2)+100+btnYSize)
+    btnXSize=int(app.width/3.2)
+    btnYSize=int(app.width/12)
+    AIBtn=(centerX-(app.width//9.6)-btnXSize, (app.height/2)+(app.height//6), 
+            centerX-(app.width//9.6), (app.height/2)+(app.height//6)+btnYSize)
+    MultBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
+            centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
     if (x in range(int(AIBtn[0]), int(AIBtn[2]))) and (y in range(int(AIBtn[1]), int(AIBtn[3]))):
         app.mode="single"
     elif (x in range(int(MultBtn[0]), int(MultBtn[2]))) and (y in range(int(MultBtn[1]), int(MultBtn[3]))):
@@ -47,43 +49,45 @@ def landingPage_mousePressed(app, event):
 #######################################################
 
 def multi_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/37)
     if app.connecting:
         canvas.create_text(app.width/2, app.height/2, 
                         text='Connecting to server...', font='Times 26 bold')
     else:
         centerX=app.width/2
-        btnXSize=100
-        btnYSize=50
-        whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-                centerX-100, (app.height/2)+100+btnYSize)
-        blackBtn=(centerX+100, (app.height/2)+100, 
-                centerX+100+btnXSize, (app.height/2)+100+btnYSize)
-        backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+        btnXSize=int(app.width/3.2)
+        btnYSize=int(app.width/12)
+        whiteBtn=(centerX-(app.width//9.6)-btnXSize, (app.height/2)+(app.height//6), 
+                centerX-(app.width//9.6), (app.height/2)+(app.height//6)+btnYSize)
+        blackBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
+                centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
+        backBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+            centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
         whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
         blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
         backBtnCenter=((backBtn[0]+backBtn[2])/2, (backBtn[1]+backBtn[3])/2)
-        canvas.create_text(app.width/2, (app.height/2)-200, text='Multiplayer Mode', font='Times 26 bold')
-        canvas.create_text(app.width/2, (app.height/2)-100, text='Please choose your side', font='Times 26 bold')
+        canvas.create_text(app.width/2, (app.height/2)-(app.height//3), text='Multiplayer Mode', font=f'Times {fontSize1} bold')
+        canvas.create_text(app.width/2, (app.height/2)-(app.height//6), text='Please choose your side', font=f'Times {fontSize1} bold')
         canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
         canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
         canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
-        canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font='Times 13')
-        canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font='Times 13')
-        canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font='Times 13')
+        canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font=f'Times {fontSize2}')
+        canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font=f'Times {fontSize2}')
+        canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font=f'Times {fontSize2}')
 
 def multi_mousePressed(app, event):
     x=event.x
     y=event.y
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-            centerX-100, (app.height/2)+100+btnYSize)
-    blackBtn=(centerX+100, (app.height/2)+100, 
-            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
-    backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=int(app.width/3.2)
+    btnYSize=int(app.width/12)
+    whiteBtn=(centerX-(app.width//9.6)-btnXSize, (app.height/2)+(app.height//6), 
+            centerX-(app.width//9.6), (app.height/2)+(app.height//6)+btnYSize)
+    blackBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
+            centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
+    backBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+        centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
         app.connecting=True
         app.player=0
@@ -117,39 +121,41 @@ def multi_mousePressed(app, event):
 #######################################################
 
 def single_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/37)
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-            centerX-100, (app.height/2)+100+btnYSize)
-    blackBtn=(centerX+100, (app.height/2)+100, 
-            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
-    backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=int(app.width/3.2)
+    btnYSize=int(app.width/12)
+    whiteBtn=(centerX-(app.width//9.6)-btnXSize, (app.height/2)+(app.height//6), 
+            centerX-(app.width//9.6), (app.height/2)+(app.height//6)+btnYSize)
+    blackBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
+            centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
+    backBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+        centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
     blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
     backBtnCenter=((backBtn[0]+backBtn[2])/2, (backBtn[1]+backBtn[3])/2)
-    canvas.create_text(app.width/2, (app.height/2)-200, text='Singleplayer Mode', font='Times 26 bold')
-    canvas.create_text(app.width/2, (app.height/2)-100, text='Please choose your side', font='Times 26 bold')
+    canvas.create_text(app.width/2, (app.height/2)-(app.height//3), text='Singleplayer Mode', font=f'Times {fontSize1} bold')
+    canvas.create_text(app.width/2, (app.height/2)-(app.height//6), text='Please choose your side', font=f'Times {fontSize1} bold')
     canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
     canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
     canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
-    canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font='Times 13')
-    canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font='Times 13')
-    canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font='Times 13')
+    canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font=f'Times {fontSize2}')
+    canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font=f'Times {fontSize2}')
+    canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font=f'Times {fontSize2}')
 
 def single_mousePressed(app, event):
     x=event.x
     y=event.y
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    whiteBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-            centerX-100, (app.height/2)+100+btnYSize)
-    blackBtn=(centerX+100, (app.height/2)+100, 
-            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
-    backBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=int(app.width/3.2)
+    btnYSize=int(app.width/12)
+    whiteBtn=(centerX-(app.width//9.6)-btnXSize, (app.height/2)+(app.height//6), 
+            centerX-(app.width//9.6), (app.height/2)+(app.height//6)+btnYSize)
+    blackBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
+            centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
+    backBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+        centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
         app.player=0
         app.AIPlayer=1
@@ -171,28 +177,30 @@ def single_mousePressed(app, event):
 #######################################################
 
 def failed_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/27)
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=app.width//4.8
+    btnYSize=app.height//12
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+            centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     quitBtnCenter=((quitBtn[0]+quitBtn[2])/2, (quitBtn[1]+quitBtn[3])/2)
-    canvas.create_text(app.width/2, (app.height/2)-150, 
-                        text='Failed to connect to server', font='Times 26 bold')
-    canvas.create_text(app.width/2, (app.height/2)-50, 
-                        text='Check server status/IP Address/Port settings', font='Times 18 bold')
+    canvas.create_text(app.width/2, (app.height/2)-(app.height//4), 
+                        text='Failed to connect to server', font=f'Times {fontSize1} bold')
+    canvas.create_text(app.width/2, (app.height/2)-(app.height//12), 
+                        text='Check server status/IP Address/Port settings', font=f'Times {fontSize2} bold')
     canvas.create_rectangle(quitBtn[0], quitBtn[1], quitBtn[2], quitBtn[3], fill="light blue")
     canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], 
-                        text='Quit', font='Times 18')
+                        text='Quit', font=f'Times {fontSize2}')
     
 def failed_mousePressed(app, event):
     x=event.x
     y=event.y
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=app.width//4.8
+    btnYSize=app.height//12
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+            centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and 
         (y in range(int(quitBtn[1]), int(quitBtn[3])))):
         exit()
@@ -202,8 +210,9 @@ def failed_mousePressed(app, event):
 #######################################################
 
 def rejected_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/18)
     canvas.create_text(app.width/2, app.height/2, 
-                        text='No white player online yet, please try again later', font='Times 26 bold')
+                        text='No white player online yet, please try again later', font=f'Times {fontSize1} bold')
 
 def rejected_keyPressed(app, event):
     pass
@@ -213,8 +222,9 @@ def rejected_keyPressed(app, event):
 #######################################################
 
 def wait_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/18)
     canvas.create_text(app.width/2, app.height/2, 
-            text='Waiting for other player...', font='Times 26 bold')
+            text='Waiting for other player...', font=f'Times {fontSize1} bold')
 
 def wait_timerFired(app):
     try:
@@ -230,29 +240,30 @@ def wait_timerFired(app):
 #######################################################
 
 def disconnected_redrawAll(app, canvas):
-    font = 'Times 26 bold'
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/27)
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=app.width//4.8
+    btnYSize=app.height//12
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+            centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     quitBtnCenter=((quitBtn[0]+quitBtn[2])/2, (quitBtn[1]+quitBtn[3])/2)
-    canvas.create_text(app.width/2, (app.height/2)-150, 
-                        text='Your Opponent Disconnected', font=font)
-    canvas.create_text(app.width/2, (app.height/2)-50, 
-                        text='Closing the game now', font=font)
+    canvas.create_text(app.width/2, (app.height/2)-(app.height//4), 
+                        text='Your Opponent Disconnected', font=f'Times {fontSize1} bold')
+    canvas.create_text(app.width/2, (app.height/2)-(app.height//12), 
+                        text='Closing the game now', font=f'Times {fontSize1} bold')
     canvas.create_rectangle(quitBtn[0], quitBtn[1], quitBtn[2], quitBtn[3], fill="light blue")
     canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], 
-                        text='Quit', font='Times 18')
+                        text='Quit', font=f'Times {fontSize2}')
 
 def disconnected_mousePressed(app, event):
     x=event.x
     y=event.y
     centerX=app.width/2
-    btnXSize=100
-    btnYSize=50
-    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
-            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    btnXSize=app.width//4.8
+    btnYSize=app.height//12
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
+            centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and 
         (y in range(int(quitBtn[1]), int(quitBtn[3])))):
         exit()
@@ -264,8 +275,23 @@ def disconnected_mousePressed(app, event):
 def victory_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    canvas.create_text(app.width/2, app.height-80, text='You won!', font='Times 26 bold')
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/24)
+    canvas.create_text(app.width/2, app.height-(app.height/7.5), text='You won!', font=f'Times {fontSize1} bold')
+    quitBtn=((app.width/2)-(app.width/4.8), (app.height-(app.height/12)), 
+            (app.width/2)+(app.width/4.8), (app.height-(app.height/30)))
+    quitBtnCenter=((quitBtn[0]+quitBtn[2])/2, (quitBtn[1]+quitBtn[3])/2)
+    canvas.create_rectangle(quitBtn[0], quitBtn[1], quitBtn[2], quitBtn[3], fill="light blue")
+    canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], text='Quit', font=f'Times {fontSize2}')
 
+def victory_mousePressed(app, event):
+    quitBtn=((app.width/2)-(app.width/4.8), (app.height-(app.height/12)), 
+            (app.width/2)+(app.width/4.8), (app.height-(app.height/30)))
+    x=event.x
+    y=event.y
+    if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and
+        y in range(int(quitBtn[1]), int(quitBtn[3]))):
+        exit()
 #######################################################
 # Defeat Page #
 #######################################################
@@ -273,14 +299,32 @@ def victory_redrawAll(app, canvas):
 def defeat_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    canvas.create_text(app.width/2, app.height-80, text='You lost!', font='Times 26 bold')
+    fontSize1=int(min(app.height, app.width)/18)
+    fontSize2=int(min(app.height, app.width)/24)
+    canvas.create_text(app.width/2, app.height-(app.height/7.5), text='You lost!', font=f'Times {fontSize1} bold')
+    quitBtn=((app.width/2)-(app.width/4.8), (app.height-(app.height/12)), 
+            (app.width/2)+(app.width/4.8), (app.height-(app.height/30)))
+    quitBtnCenter=((quitBtn[0]+quitBtn[2])/2, (quitBtn[1]+quitBtn[3])/2)
+    canvas.create_rectangle(quitBtn[0], quitBtn[1], quitBtn[2], quitBtn[3], fill="light blue")
+    canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], text='Quit', font=f'Times {fontSize2}')
+
+def defeat_mousePressed(app, event):
+    print(app.checkDict)
+    quitBtn=((app.width/2)-(app.width/4.8), (app.height-(app.height/12)), 
+            (app.width/2)+(app.width/4.8), (app.height-(app.height/30)))
+    x=event.x
+    y=event.y
+    if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and
+        y in range(int(quitBtn[1]), int(quitBtn[3]))):
+        update_hash(app)
+        exit()
 
 #######################################################
 # Multiplayer Pawn Promotion Page #
 #######################################################
 
 def onlinePawnPromotion_loadPieces(app, canvas):
-    y=app.height-80
+    y=app.height-(app.height//7.5)
     possiblePieces=["queen", "bishop", "knight", "rook"]
     for index in range(4):
         if app.player==0:
@@ -297,7 +341,7 @@ def onlinePawnPromotion_loadPieces(app, canvas):
 def onlinePawnPromotion_mousePressed(app, event):
     x=event.x
     y=event.y
-    center=app.height-80
+    center=app.height-(app.height//7.5)
     currR=app.promotingPawn[0]
     currC=app.promotingPawn[1]
     row=app.promotingPawn[2]
@@ -344,17 +388,18 @@ def onlinePawnPromotion_mousePressed(app, event):
         app.mode="onlineMode"
 
 def onlinePawnPromotion_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/27)
     drawBoard(app, canvas)
     loadPieces(app, canvas)
     onlinePawnPromotion_loadPieces(app, canvas)
-    canvas.create_text(app.width/2, app.height-30, text='Pawn Promotion', font='Times 18 bold')
+    canvas.create_text(app.width/2, app.height-(app.height//20), text='Pawn Promotion', font=f'Times {fontSize1} bold')
 
 #######################################################
 # Singleplayer Pawn Promotion Page #
 #######################################################
 
 def localPawnPromotion_loadPieces(app, canvas):
-    y=app.height-80
+    y=app.height-(app.height//7.5)
     possiblePieces=["queen", "bishop", "knight", "rook"]
     for index in range(4):
         if app.player==0:
@@ -371,7 +416,7 @@ def localPawnPromotion_loadPieces(app, canvas):
 def localPawnPromotion_mousePressed(app, event):
     x=event.x
     y=event.y
-    center=app.height-80
+    center=app.height-(app.height//7.5)
     currR=app.promotingPawn[0]
     currC=app.promotingPawn[1]
     row=app.promotingPawn[2]
@@ -419,19 +464,21 @@ def localPawnPromotion_mousePressed(app, event):
         app.mode="localMode"
 
 def localPawnPromotion_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/27)
     drawBoard(app, canvas)
     loadPieces(app, canvas)
     localPawnPromotion_loadPieces(app, canvas)
-    canvas.create_text(app.width/2, app.height-30, text='Pawn Promotion', font='Times 18 bold')
+    canvas.create_text(app.width/2, app.height-(app.height//20), text='Pawn Promotion', font=f'Times {fontSize1} bold')
 
 #######################################################
 # Waiting Page #
 #######################################################
 
 def waiting_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/27)
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    canvas.create_text(app.width/2, app.height-50, text="Waiting for Opponent's Move", font='Times 18 bold')
+    canvas.create_text(app.width/2, app.height-(app.height//12), text="Waiting for Opponent's Move", font=f'Times {fontSize1} bold')
 
 def waiting_timerFired(app):
     try:
@@ -447,30 +494,33 @@ def waiting_timerFired(app):
 #######################################################
 
 def localMode_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/48)
+    fontSize2=int(min(app.height, app.width)/27)
+    fontSize3=int(min(app.height, app.width)/40)
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    easyBtn=((app.width/2)-100, (app.height-80), 
-            (app.width/2)+100, (app.height-50))
+    easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
+            (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
     easyBtnCenter=((easyBtn[0]+easyBtn[2])/2, (easyBtn[1]+easyBtn[3])/2)
     canvas.create_rectangle(easyBtn[0], easyBtn[1], easyBtn[2], easyBtn[3], fill="light blue")
-    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+25, text="*Move Assistance highlight valid moves in green", font='Times 10')
-    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+40, text="and danger zone in red when you select a piece", font='Times 10')
+    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//24), text="*Move Assistance highlight valid moves in green", font=f'Times {fontSize1}')
+    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//15), text="and danger zone in red when you select a piece", font=f'Times {fontSize1}')
     if app.localWent==app.player:
-        canvas.create_text(app.width/2, app.height-100, text="Waiting for AI to make a move", font='Times 18 bold')
+        canvas.create_text(app.width/2, app.height-(app.height//6), text="Waiting for AI to make a move", font=f'Times {fontSize2} bold')
     else:
-        canvas.create_text(app.width/2, app.height-100, text="Your Move", font='Times 18 bold')
+        canvas.create_text(app.width/2, app.height-(app.height//6), text="Your Move", font=f'Times {fontSize2} bold')
     if app.easyMode:
-        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance On", font='Times 12')
+        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance On", font=f'Times {fontSize3}')
     else:
-        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance Off", font='Times 12')
+        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance Off", font=f'Times {fontSize3}')
 
 
 def localMode_mousePressed(app, event):
     x=event.x
     y=event.y
     print("board value=", value(app, app.pieces))
-    easyBtn=((app.width/2)-100, (app.height-80), 
-            (app.width/2)+100, (app.height-50))
+    easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
+            (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
         y in range(int(easyBtn[1]), int(easyBtn[3]))):
         app.easyMode=not app.easyMode
@@ -542,6 +592,12 @@ def localMode_timerFired(app):
 def onlineMode_mousePressed(app, event):
     x=event.x
     y=event.y
+    easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
+            (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
+    print(app.checkDict)
+    if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
+        y in range(int(easyBtn[1]), int(easyBtn[3]))):
+        app.easyMode=not app.easyMode
     if not app.game.getWent(app.player) and not app.checkMate[app.player]:
         cell=selectCell(app, x, y)
         if cell!=None:
@@ -656,15 +712,27 @@ def onlineMode_timerFired(app):
                 pass
 
 def onlineMode_redrawAll(app, canvas):
+    fontSize1=int(min(app.height, app.width)/35)
+    fontSize3=int(min(app.height, app.width)/40)
+    easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
+            (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
+    easyBtnCenter=((easyBtn[0]+easyBtn[2])/2, (easyBtn[1]+easyBtn[3])/2)
+    canvas.create_rectangle(easyBtn[0], easyBtn[1], easyBtn[2], easyBtn[3], fill="light blue")
+    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//24), text="*Move Assistance highlight valid moves in green", font=f'Times {fontSize1}')
+    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//15), text="and danger zone in red when you select a piece", font=f'Times {fontSize1}')
     drawBoard(app, canvas)
     loadPieces(app, canvas)
+    if app.easyMode:
+        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance On", font=f'Times {fontSize3}')
+    else:
+        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance Off", font=f'Times {fontSize3}')
     if app.game==None: 
         pass
     else:
         if app.game.getWent(app.player):
-            canvas.create_text(app.width/2, app.height-80, text="Waiting for Opponent's Move", font='Times 18 bold')
+            canvas.create_text(app.width/2, app.height-(app.height//6), text="Waiting for Opponent's Move", font=f'Times {fontSize1} bold')
         else:
-            canvas.create_text(app.width/2, app.height-80, text="Your Move", font='Times 18 bold')
+            canvas.create_text(app.width/2, app.height-(app.height//6), text="Your Move", font=f'Times {fontSize1} bold')
 
 #######################################################
 # # Main App # #
@@ -696,8 +764,9 @@ def appStarted(app):
     app.blackKZ=[[False, False, False, False, 
                 False, False, False, False]for i in range(8)]
     app.cellSize=min(app.width, app.height)/8
-    imageUrl="http://clipart-library.com/images/pcqrGKzLi.png"
-    app.chessSprites=app.scaleImage(app.loadImage(imageUrl), 2/3)
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
     # Initates dicts that store the sprites of chess pieces
     app.blackPieces=dict()
     app.whitePieces=dict() 
@@ -724,9 +793,26 @@ def appStarted(app):
     app.localWent=1
     # Initiates variable to store whether the player wants to play in easy mode or not
     app.easyMode=False
+    # Initiate Zobrist hash table
+    app.zobTable=init_Zob()
+    # Initiate checkMate dict
+    app.checkDict=init_check()
 
 ###############################################################################
 # Initialization Functions
+
+# Initiate checkMate dict from file
+def init_check():
+    file=open(os.path.join(sys.path[0], "check.pkl"), "rb")
+    result=pickle.load(file)
+    file.close()
+    return result
+
+# Initiate Zob table from file
+def init_Zob():
+    file = open(os.path.join(sys.path[0], "zobTable.pkl"),"rb")
+    result=pickle.load(file)
+    return result
 
 # Original code inspired by https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#loadImageUsingUrl
 # Loads chess sprites and stores them in dicts
@@ -1104,9 +1190,53 @@ def updateValidMoves(app, currR, currC):
 ###############################################################################
 # Board Hashing
 
-# Hash function that reduces a chess board into a hash code
-def hashBoard(app, board):
+# Updates the hash file after the app closes
+def update_hash(app):
+    file=open(os.path.join(sys.path[0], "check.pkl"), "wb")
+    pickle.dump(app.checkDict, file)
+    file.close()
 
+# Hash function that reduces a chess board into a zobrist hash code
+def hashBoard(app, board):
+    result=0
+    for row in range(8):
+        for col in range(8):
+            if board[row][col][0]!=None:
+                piece=board[row][col]
+                value=map_pieces(piece)
+                result^=app.zobTable[row][col][value]
+    return result
+
+# Maps each chess piece to a value for hashing purposes
+def map_pieces(piece):
+    color=piece[0]
+    piece=piece[1]
+    if color==0:
+        if piece=="pawn":
+            return 0
+        elif piece=="rook":
+            return 1
+        elif piece=="knight":
+            return 2
+        elif piece=="bishop":
+            return 3
+        elif piece=="queen":
+            return 4
+        elif piece=="king":
+            return 5
+    elif color==1:
+        if piece=="pawn":
+            return 6
+        elif piece=="rook":
+            return 7
+        elif piece=="knight":
+            return 8
+        elif piece=="bishop":
+            return 9
+        elif piece=="queen":
+            return 10
+        elif piece=="king":
+            return 11
 
 ###############################################################################
 # Move Validity Functions
@@ -1759,13 +1889,20 @@ def checkMate(app, player):
     if app.checkMate[player]: return True
     else:
         if isChecked(app, player):
-            for row in range(8):
-                for col in range(8):
-                    if app.pieces[row][col][0]==player:
-                        if checkMovesFromRowCol(app, row, col):
-                            return False
-            app.checkMate[player]=True
-            return True
+            h=hashBoard(app, app.pieces)
+            if h in app.checkDict:
+                return app.checkDict[h]
+            else:
+                for row in range(8):
+                    for col in range(8):
+                        if app.pieces[row][col][0]==player:
+                            if checkMovesFromRowCol(app, row, col):
+                                app.checkDict[h]=False
+                                return False
+                app.checkMate[player]=True
+                app.checkDict[h]=True
+                print(h, "added to table")
+                return True
         else:
             return False
 

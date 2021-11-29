@@ -41,7 +41,7 @@ To connect to my server and play (I promise I won't inject malicious code into y
 	
 	2. Make sure that you are connected to CMU Secure
 	
-	3. run chess.py and play!
+	3. run socket_files_chess.py and play!
 
 *How to obtain your local IP address: 
 

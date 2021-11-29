@@ -468,9 +468,7 @@ def localMode_redrawAll(app, canvas):
 def localMode_mousePressed(app, event):
     x=event.x
     y=event.y
-    print("king:", app.kingMoved)
-    print("rightRook:", app.rightRookMoved)
-    print("leftRook:", app.leftRookMoved)
+    print("board value=", value(app, app.pieces))
     easyBtn=((app.width/2)-100, (app.height-80), 
             (app.width/2)+100, (app.height-50))
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
@@ -812,7 +810,9 @@ def value(app, board):
             piece=board[row][col][1]
             if color!=None:
                 val=app.values[(color, piece)]
+                print(piece, "added", val)
                 result+=val
+                print("result:", result)
     return result
 
 # Minmax algo where white is minimizing and black is maximizing
@@ -845,12 +845,21 @@ def maximize(app, board, depth, alpha, beta):
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
         minMove, tmpValue=minimize(app, board, depth+1, alpha, beta)
-        if tmpValue>best_value:
-            best_value=tmpValue
-            optimal_move=move
-        # Alpha-Beta Pruning
-        alpha=max(alpha, best_value)
-        if beta<=alpha: break
+        if not isChecked(app, 1):
+            if tmpValue>best_value:
+                best_value=tmpValue
+                optimal_move=move
+            # Alpha-Beta Pruning
+            alpha=max(alpha, best_value)
+            if beta<=alpha: break
+        else:
+            if (tmpValue>best_value) and isGoodMove(app, row, col, currR, currC):
+                best_value=tmpValue
+                optimal_move=move
+            # Alpha-Beta Pruning
+            alpha=max(alpha, best_value)
+            if beta<=alpha: break
+            else: continue
     return (optimal_move, best_value)
 
 # Returns the optimal move and the value of the resulting board 
@@ -866,11 +875,19 @@ def minimize(app, board, depth, alpha, beta):
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
         minMove, tmpValue=maximize(app, board, depth+1, alpha, beta)
-        if tmpValue<best_value:
-            best_value=tmpValue
-            optimal_move=move
-        beta=min(beta, best_value)
-        if beta<=alpha:break
+        if not isChecked(app, 0):
+            if tmpValue<best_value:
+                best_value=tmpValue
+                optimal_move=move
+            beta=min(beta, best_value)
+            if beta<=alpha:break
+        else:
+            if tmpValue<best_value and isGoodMove(app, row, col, currR, currC):
+                best_value=tmpValue
+                optimal_move=move
+            # Alpha-Beta pruning
+            beta=min(beta, best_value)
+            if beta<=alpha:break
     return (optimal_move, best_value)
 
 # Returns the board that results from making a move [currR][currR] to [row][col]
@@ -1083,6 +1100,13 @@ def updateValidMoves(app, currR, currC):
         for col in range(8):
             if isValidMove(app, app.pieces, row, col, currR, currC):
                 app.validMoves[row][col]=True
+
+###############################################################################
+# Board Hashing
+
+# Hash function that reduces a chess board into a hash code
+def hashBoard(app, board):
+
 
 ###############################################################################
 # Move Validity Functions

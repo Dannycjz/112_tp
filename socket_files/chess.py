@@ -1,4 +1,4 @@
-import tkinter, pickle
+import tkinter, pickle, random
 from cmu_112_graphics import *
 from network import Network
 
@@ -12,12 +12,12 @@ def landingPage_redrawAll(app, canvas):
                         text='Connecting to server...', font='Times 26 bold')
     else:
         centerX=app.width/2
-        btnXSize=100
+        btnXSize=150
         btnYSize=50
-        AIBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-                centerX-100, (app.height/2)+100+btnYSize)
-        MultBtn=(centerX+100, (app.height/2)+100, 
-                centerX+100+btnXSize, (app.height/2)+100+btnYSize)
+        AIBtn=(centerX-50-btnXSize, (app.height/2)+100, 
+                centerX-50, (app.height/2)+100+btnYSize)
+        MultBtn=(centerX+50, (app.height/2)+100, 
+                centerX+50+btnXSize, (app.height/2)+100+btnYSize)
         AIBtnCenter=((AIBtn[0]+AIBtn[2])/2, (AIBtn[1]+AIBtn[3])/2)
         MultBtnCenter=((MultBtn[0]+MultBtn[2])/2, (MultBtn[1]+MultBtn[3])/2)
         canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font='Times 26 bold')
@@ -32,18 +32,15 @@ def landingPage_mousePressed(app, event):
     centerX=app.width/2
     btnXSize=100
     btnYSize=50
-    AIBtn=(centerX-100-btnXSize, (app.height/2)+100, 
-            centerX-100, (app.height/2)+100+btnYSize)
-    MultBtn=(centerX+100, (app.height/2)+100, 
-            centerX+100+btnXSize, (app.height/2)+100+btnYSize)
+    AIBtn=(centerX-50-btnXSize, (app.height/2)+100, 
+            centerX-50, (app.height/2)+100+btnYSize)
+    MultBtn=(centerX+50, (app.height/2)+100, 
+            centerX+50+btnXSize, (app.height/2)+100+btnYSize)
     if (x in range(int(AIBtn[0]), int(AIBtn[2]))) and (y in range(int(AIBtn[1]), int(AIBtn[3]))):
         app.mode="single"
     elif (x in range(int(MultBtn[0]), int(MultBtn[2]))) and (y in range(int(MultBtn[1]), int(MultBtn[3]))):
         app.mode="multi"
     else:pass
-
-def landingPage_keyPressed(app, event):
-    pass
 
 #######################################################
 # Multiplayer Page #
@@ -66,8 +63,8 @@ def multi_redrawAll(app, canvas):
         whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
         blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
         backBtnCenter=((backBtn[0]+backBtn[2])/2, (backBtn[1]+backBtn[3])/2)
-        canvas.create_text(app.width/2, (app.height/2)-200, text='Multiplayer', font='Times 26 bold')
-        canvas.create_text(app.width/2, (app.height/2), text='Please choose your side', font='Times 26 bold')
+        canvas.create_text(app.width/2, (app.height/2)-200, text='Multiplayer Mode', font='Times 26 bold')
+        canvas.create_text(app.width/2, (app.height/2)-100, text='Please choose your side', font='Times 26 bold')
         canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
         canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
         canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
@@ -115,9 +112,6 @@ def multi_mousePressed(app, event):
         app.mode="landingPage"
     else:pass
 
-def multi_keyPressed(app, event):
-    pass
-
 #######################################################
 # Single player Page #
 #######################################################
@@ -135,8 +129,8 @@ def single_redrawAll(app, canvas):
     whiteBtnCenter=((whiteBtn[0]+whiteBtn[2])/2, (whiteBtn[1]+whiteBtn[3])/2)
     blackBtnCenter=((blackBtn[0]+blackBtn[2])/2, (blackBtn[1]+blackBtn[3])/2)
     backBtnCenter=((backBtn[0]+backBtn[2])/2, (backBtn[1]+backBtn[3])/2)
-    canvas.create_text(app.width/2, (app.height/2)-200, text='Singleplayer', font='Times 26 bold')
-    canvas.create_text(app.width/2, (app.height/2), text='Please choose your side', font='Times 26 bold')
+    canvas.create_text(app.width/2, (app.height/2)-200, text='Singleplayer Mode', font='Times 26 bold')
+    canvas.create_text(app.width/2, (app.height/2)-100, text='Please choose your side', font='Times 26 bold')
     canvas.create_rectangle(whiteBtn[0], whiteBtn[1], whiteBtn[2], whiteBtn[3], fill="white")
     canvas.create_rectangle(blackBtn[0], blackBtn[1], blackBtn[2], blackBtn[3], fill="black")
     canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
@@ -158,10 +152,12 @@ def single_mousePressed(app, event):
             centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
         app.player=0
+        app.AIPlayer=1
         app.pieces=init_piece(app)
         app.kingLoc=[(7, 4), (0, 4)]
         app.mode="localMode"
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
+        app.AIPlayer=0
         app.player=1
         app.pieces=init_piece(app)
         app.kingLoc=[(0, 4), (7, 4)]
@@ -170,21 +166,36 @@ def single_mousePressed(app, event):
         app.mode="landingPage"
     else:pass
 
-def single_keyPressed(app, event):
-    pass
-
 #######################################################
 # Failed Page #
 #######################################################
 
 def failed_redrawAll(app, canvas):
-    canvas.create_text(app.width/2, app.height/2, 
+    centerX=app.width/2
+    btnXSize=100
+    btnYSize=50
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    quitBtnCenter=((quitBtn[0]+quitBtn[2])/2, (quitBtn[1]+quitBtn[3])/2)
+    canvas.create_text(app.width/2, (app.height/2)-150, 
                         text='Failed to connect to server', font='Times 26 bold')
-    canvas.create_text(app.width/2, (app.height/2)+100, 
+    canvas.create_text(app.width/2, (app.height/2)-50, 
                         text='Check server status/IP Address/Port settings', font='Times 18 bold')
-
-def failed_keyPressed(app, event):
-    pass
+    canvas.create_rectangle(quitBtn[0], quitBtn[1], quitBtn[2], quitBtn[3], fill="light blue")
+    canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], 
+                        text='Quit', font='Times 18')
+    
+def failed_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    centerX=app.width/2
+    btnXSize=100
+    btnYSize=50
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and 
+        (y in range(int(quitBtn[1]), int(quitBtn[3])))):
+        exit()
 
 #######################################################
 # Rejected Page #
@@ -220,13 +231,31 @@ def wait_timerFired(app):
 
 def disconnected_redrawAll(app, canvas):
     font = 'Times 26 bold'
-    canvas.create_text(app.width/2, app.height/2, 
+    centerX=app.width/2
+    btnXSize=100
+    btnYSize=50
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    quitBtnCenter=((quitBtn[0]+quitBtn[2])/2, (quitBtn[1]+quitBtn[3])/2)
+    canvas.create_text(app.width/2, (app.height/2)-150, 
                         text='Your Opponent Disconnected', font=font)
-    canvas.create_text(app.width/2, (app.height/2)+100, 
+    canvas.create_text(app.width/2, (app.height/2)-50, 
                         text='Closing the game now', font=font)
+    canvas.create_rectangle(quitBtn[0], quitBtn[1], quitBtn[2], quitBtn[3], fill="light blue")
+    canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], 
+                        text='Quit', font='Times 18')
 
-def disconnected_keyPressed(app, event):
-    pass
+def disconnected_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    centerX=app.width/2
+    btnXSize=100
+    btnYSize=50
+    quitBtn=(centerX-(btnXSize/2), (app.height/2)+150, 
+            centerX+(btnXSize/2), (app.height/2)+150+btnYSize)
+    if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and 
+        (y in range(int(quitBtn[1]), int(quitBtn[3])))):
+        exit()
 
 #######################################################
 # Victory Page #
@@ -247,10 +276,10 @@ def defeat_redrawAll(app, canvas):
     canvas.create_text(app.width/2, app.height-80, text='You lost!', font='Times 26 bold')
 
 #######################################################
-# Pawn Promotion Page #
+# Multiplayer Pawn Promotion Page #
 #######################################################
 
-def pawnPromotion_loadPieces(app, canvas):
+def onlinePawnPromotion_loadPieces(app, canvas):
     y=app.height-80
     possiblePieces=["queen", "bishop", "knight", "rook"]
     for index in range(4):
@@ -265,7 +294,7 @@ def pawnPromotion_loadPieces(app, canvas):
             x=(app.width/5)*(index+1)
             canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
 
-def pawnPromotion_mousePressed(app, event):
+def onlinePawnPromotion_mousePressed(app, event):
     x=event.x
     y=event.y
     center=app.height-80
@@ -314,10 +343,85 @@ def pawnPromotion_mousePressed(app, event):
         app.promotingPawn=None
         app.mode="onlineMode"
 
-def pawnPromotion_redrawAll(app, canvas):
+def onlinePawnPromotion_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
-    pawnPromotion_loadPieces(app, canvas)
+    onlinePawnPromotion_loadPieces(app, canvas)
+    canvas.create_text(app.width/2, app.height-30, text='Pawn Promotion', font='Times 18 bold')
+
+#######################################################
+# Singleplayer Pawn Promotion Page #
+#######################################################
+
+def localPawnPromotion_loadPieces(app, canvas):
+    y=app.height-80
+    possiblePieces=["queen", "bishop", "knight", "rook"]
+    for index in range(4):
+        if app.player==0:
+            piece=possiblePieces[index]
+            sprite=app.whitePieces[piece]
+            x=(app.width/5)*(index+1)
+            canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
+        elif app.player==1:
+            piece=possiblePieces[index]
+            sprite=app.blackPieces[piece]
+            x=(app.width/5)*(index+1)
+            canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
+
+def localPawnPromotion_mousePressed(app, event):
+    x=event.x
+    y=event.y
+    center=app.height-80
+    currR=app.promotingPawn[0]
+    currC=app.promotingPawn[1]
+    row=app.promotingPawn[2]
+    col=app.promotingPawn[3]
+    queenBtn=((app.width/5)-(app.cellSize/2), ((app.width/5))+(app.cellSize/2), 
+                center-(app.cellSize/2), center+(app.cellSize/2))
+    bishopBtn=(((app.width/5)*2)-(app.cellSize/2), ((app.width/5)*2)+(app.cellSize/2), 
+                center-(app.cellSize/2), center+(app.cellSize/2))
+    knightBtn=(((app.width/5)*3)-(app.cellSize/2), ((app.width/5)*3)+(app.cellSize/2), 
+                center-(app.cellSize/2), center+(app.cellSize/2))
+    rookBtn=(((app.width/5)*4)-(app.cellSize/2), ((app.width/5)*4)+(app.cellSize/2), 
+                center-(app.cellSize/2), center+(app.cellSize/2))
+    if x in range(int(queenBtn[0]), int(queenBtn[1])) and y in range(int(queenBtn[2]), int(queenBtn[3])):
+        app.pieces[row][col]=(app.player, "queen")
+        print("Pawn promoted")
+        app.lastMove=(app.pieces[row][col], currR, currC, row, col)
+        app.localWent=app.player
+        app.updated=False
+        app.promotingPawn=None
+        update_killzones(app)
+        app.mode="localMode"
+    elif x in range(int(bishopBtn[0]), int(bishopBtn[1])) and y in range(int(bishopBtn[2]), int(bishopBtn[3])):
+        app.pieces[row][col]=(app.player, "bishop")
+        app.lastMove=(app.pieces[row][col], currR, currC, row, col)
+        app.localWent=app.player
+        app.updated=False
+        app.promotingPawn=None
+        update_killzones(app)
+        app.mode="localMode"
+    elif x in range(int(knightBtn[0]), int(knightBtn[1])) and y in range(int(knightBtn[2]), int(knightBtn[3])):
+        app.pieces[row][col]=(app.player, "knight")
+        app.lastMove=(app.pieces[row][col], currR, currC, row, col)
+        app.localWent=app.player
+        app.updated=False
+        app.promotingPawn=None
+        update_killzones(app)
+        app.mode="localMode"
+    elif x in range(int(rookBtn[0]), int(rookBtn[1])) and y in range(int(rookBtn[2]), int(rookBtn[3])):
+        app.pieces[row][col]=(app.player, "rook")
+        app.lastMove=(app.pieces[row][col], currR, currC, row, col)
+        app.localWent=app.player
+        app.updated=False
+        app.promotingPawn=None
+        update_killzones(app)
+        app.mode="localMode"
+
+def localPawnPromotion_redrawAll(app, canvas):
+    drawBoard(app, canvas)
+    loadPieces(app, canvas)
+    localPawnPromotion_loadPieces(app, canvas)
     canvas.create_text(app.width/2, app.height-30, text='Pawn Promotion', font='Times 18 bold')
 
 #######################################################
@@ -345,11 +449,32 @@ def waiting_timerFired(app):
 def localMode_redrawAll(app, canvas):
     drawBoard(app, canvas)
     loadPieces(app, canvas)
+    easyBtn=((app.width/2)-100, (app.height-80), 
+            (app.width/2)+100, (app.height-50))
+    easyBtnCenter=((easyBtn[0]+easyBtn[2])/2, (easyBtn[1]+easyBtn[3])/2)
+    canvas.create_rectangle(easyBtn[0], easyBtn[1], easyBtn[2], easyBtn[3], fill="light blue")
+    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+25, text="*Move Assistance highlight valid moves in green", font='Times 10')
+    canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+40, text="and danger zone in red when you select a piece", font='Times 10')
+    if app.localWent==app.player:
+        canvas.create_text(app.width/2, app.height-100, text="Waiting for AI to make a move", font='Times 18 bold')
+    else:
+        canvas.create_text(app.width/2, app.height-100, text="Your Move", font='Times 18 bold')
+    if app.easyMode:
+        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance On", font='Times 12')
+    else:
+        canvas.create_text(easyBtnCenter[0], easyBtnCenter[1], text="Move Assistance Off", font='Times 12')
+
+
 
 def localMode_mousePressed(app, event):
     x=event.x
     y=event.y
-    if not app.checkMate[app.player]:
+    easyBtn=((app.width/2)-100, (app.height-80), 
+            (app.width/2)+100, (app.height-50))
+    if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
+        y in range(int(easyBtn[1]), int(easyBtn[3]))):
+        app.easyMode=not app.easyMode
+    if (not app.checkMate[app.player]) and (not app.localWent==app.player):
         cell=selectCell(app, x, y)
         if cell!=None:
             (row, col)=cell
@@ -371,10 +496,12 @@ def localMode_mousePressed(app, event):
                 currC=app.oldLoc[1]
                 if not isChecked(app, app.player):
                     localMovePiece(app, row, col, currR, currC)
+                    update_killzones(app)
                 else:
                     if isGoodMove(app, row, col, currR, currC):
                         selectPiece(app, currR, currC)
                         localMovePiece(app, row, col, currR, currC)
+                        update_killzones(app)
                     else:
                         unselectPiece(app)
                         clearOutlines(app)
@@ -383,81 +510,30 @@ def localMode_mousePressed(app, event):
     else:
         pass
 
-def onlineMode_timerFired(app):
-    try:
-    # Tries to get game from server
-        app.game=app.n.send("get")
-    except:
-        app.mode="disconnected"
-    if app.game==None: 
-        app.mode="rejected"
-    else:
-        if app.game.over:
-            if app.game.winner==app.player:
-                app.mode="victory"
-            else:
-                app.mode="defeat"
-        # If local board is not up to date
-        elif not app.game.updated[app.player]:
-            # Get the move and make the move on local board
-            move=app.game.getMove(app.player)
-            if move!=():
-                otherPlayer=app.game.getOtherPlayer(app.player)
-                print("Other player made a move", move)
-                (currR, currC, row, col)=move
-                # Mirror the move 
-                currR=7-currR
-                row=7-row
-                piece=selectPiece(app, currR, currC)
-                makeMove(app, row, col, currR, currC)
-                # Updates the other player's king location if they moved their king
-                if (app.pieces[currR][currC][1]=="king"):
-                    app.kingLoc[otherPlayer]=(currR, currC)
-                status=app.game.getCastlingStatus(app.player)
-                # Delete the piece if En Passant
-                if app.game.getEnPassant(app.player):
-                    app.pieces[currR][col]=(None, "empty")
-                # If the other player just made a castling move:
-                elif status[0]:
-                    # Move the rook for right castling
-                    if status[1]=="right":
-                        rook=app.pieces[row][col+1]
-                        app.pieces[row][col-1]=rook
-                        app.pieces[row][col+1]=(None, "empty")
-                    # Move the rook for left castling
-                    elif status[1]=="left":
-                        rook=app.pieces[row][col-2]
-                        app.pieces[row][col+1]=rook
-                        app.pieces[row][col-2]=(None, "empty")
-                elif app.game.promotingPawnToQueen:
-                    print("promoting pawn to queen")
-                    color=app.pieces[row][col][0]
-                    app.pieces[row][col]=(color, "queen")
-                    app.n.send("resetPawnPromotion")
-                elif app.game.promotingPawnToBishop:
-                    color=app.pieces[row][col][0]
-                    app.pieces[row][col]=(color, "bishop")
-                    app.n.send("resetPawnPromotion")
-                elif app.game.promotingPawnToKnight:
-                    color=app.pieces[row][col][0]
-                    app.pieces[row][col]=(color, "knight")
-                    app.n.send("resetPawnPromotion")
-                elif app.game.promotingPawnToRook:
-                    color=app.pieces[row][col][0]
-                    app.pieces[row][col]=(color, "rook")
-                    app.n.send("resetPawnPromotion")
-                app.lastMove=(piece, currR, currC, row, col)
+def localMode_timerFired(app):
+    if app.localWent==app.player:
+        print("player went")
+        # Check if the player achieved a checkmate
+        if checkMate(app, app.AIPlayer):
+            app.checkMate[app.AIPlayer]=True
+            app.mode="victory"
+        else:
+            # Have the AI make a move
+            (AIcurrR, AIcurrC, AIrow, AIcol)=minimax(app, app.AIPlayer)
+            print("move returned by minimax")
+            if not isChecked(app, app.AIPlayer):
+                AIMovePiece(app, AIrow, AIcol, AIcurrR, AIcurrC)
+                print("AI moved:", AIrow, AIcol, AIcurrR, AIcurrC)
                 update_killzones(app)
-                # Checks if there is a checkmate
+                # Checks if the AI achieved a checkmate
                 if checkMate(app, app.player):
                     app.checkMate[app.player]=True
-                    app.n.send("Checkmate")
                     app.mode="defeat"
-                    print("CheckMate")
-                app.n.send("Updated")
-                print("Your Turn")
             else:
-                pass
+                if isGoodMove(app, AIrow, AIcol, AIcurrR, AIcurrC):
+                    AIMovePiece(app, AIrow, AIcol, AIcurrR, AIcurrC)
+    else:
+        pass
 
 #######################################################
 # Online Game Mode #
@@ -529,7 +605,7 @@ def onlineMode_timerFired(app):
                 currR=7-currR
                 row=7-row
                 piece=selectPiece(app, currR, currC)
-                makeMove(app, row, col, currR, currC)
+                makeMove(app, app.pieces, row, col, currR, currC)
                 # Updates the other player's king location if they moved their king
                 if (app.pieces[currR][currC][1]=="king"):
                     app.kingLoc[otherPlayer]=(currR, currC)
@@ -595,6 +671,7 @@ def onlineMode_redrawAll(app, canvas):
 #######################################################
 
 def appStarted(app):
+    # Initiate server connection settings
     app.n=Network()
     app.player=None
     app.connecting=False
@@ -644,7 +721,12 @@ def appStarted(app):
     app.lastMove=None
     # Initiates a variable to store the location of the current pawn being promoted
     app.promotingPawn=None
+    # Initiate the values of chess pieces and store it in a dictionary
     app.values=init_values()
+    # Initiates variable to keep track of which local player is due to move
+    app.localWent=1
+    # Initiates variable to store whether the player wants to play in easy mode or not
+    app.easyMode=False
 
 ###############################################################################
 # Initialization Functions
@@ -723,28 +805,93 @@ def init_values():
 # Minimax Algorithm
 
 # Returns the value of a given board based on the pieces
-def value(app):
+def value(app, board):
     result=0
-    pieces=app.pieces
     for row in range(8):
         for col in range(8):
-            color=pieces[row][col][0]
-            piece=pieces[row][col][1]
-            if color is not None:
+            color=board[row][col][0]
+            piece=board[row][col][1]
+            if color!=None:
                 val=app.values[(color, piece)]
                 result+=val
     return val
 
 # Minmax algo where white is minimizing and black is maximizing
-def minimax(self, board):
-    pass
+# Returns the optimal move for the current player on the board
+def minimax(app, player):
+    print(player)
+    alpha=float("-inf")
+    beta=float("inf")
+    if app.checkMate[player]:
+        return None
+    # White move (minimize)
+    elif player==0:
+        optimal_move, value=minimize(app, app.pieces, 0, alpha, beta)
+    elif player==1:
+        optimal_move, value=maximize(app, app.pieces, 0, alpha, beta)
+    print("board value:", value)
+    return optimal_move
 
-def maximize(self, board):
-    pass
+# Returns the optimal move and the value of the resulting board 
+# for the maximizing player
+def maximize(app, board, depth, alpha, beta):
+    print("depth=", depth)
+    if depth>=2: 
+        return (None, value(app, board))
+    best_value=float("-inf")
+    optimal_move=None
+    moves=allValidMoves(app, board, 1)
+    for move in moves:
+        (currR, currC, row, col)=move
+        board=result(app, board, currR, currC, row, col)
+        minMove, tmpValue=minimize(app, board, depth+1, alpha, beta)
+        if tmpValue>best_value:
+            best_value=tmpValue
+            optimal_move=move
+        # Alpha-Beta Pruning
+        alpha=max(alpha, best_value)
+        if beta<=alpha: break
+    return (optimal_move, best_value)
 
-def minimize(self, board):
-    pass
+# Returns the optimal move and the value of the resulting board 
+# for the minimizing player
+def minimize(app, board, depth, alpha, beta):
+    print("depth=", depth)
+    if depth>=2: 
+        return (None, value(app, board))
+    best_value=float("inf")
+    optimal_move=None
+    moves=allValidMoves(app, board, 0)
+    for move in moves:
+        (currR, currC, row, col)=move
+        board=result(app, board, currR, currC, row, col)
+        minMove, tmpValue=maximize(app, board, depth+1, alpha, beta)
+        if tmpValue<best_value:
+            best_value=tmpValue
+            optimal_move=move
+        beta=min(beta, best_value)
+        if beta<=alpha:break
+    return (optimal_move, best_value)
 
+# Returns the board that results from making a move [currR][currR] to [row][col]
+def result(app, board, currR, currC, row, col):
+    currBoard=copy.deepcopy(board)
+    makeMove(app, currBoard, row, col, currR, currC)
+    return currBoard
+    
+# Returns a random valid move
+def randomizer(app, player):
+    moves=allValidMoves(app, app.pieces, player)
+    if isChecked(app, player):
+        while True:
+            (currR, currC, row, col)=moves.pop()
+            if isGoodMove(app, row, col, currR, currC):
+                move=(currR, currC, row, col)
+                break
+    else:
+        move=moves.pop()
+    return move
+    
 ###############################################################################
 # Status Update Functions
 
@@ -782,13 +929,13 @@ def blackMoves(app, currR, currC):
             else:
                 if isValidPawnBackTrack(app, currR, currC, row, col, 1):
                     pawnSet.append((row, col))
-                if isValidRookMove(app, currR, currC, row, col, 1):
+                if isValidRookMove(app, app.pieces, currR, currC, row, col, 1):
                     rookSet.append((row, col))
-                if isValidKnightMove(app, currR, currC, row, col, 1):
+                if isValidKnightMove(app, app.pieces, currR, currC, row, col, 1):
                     knightSet.append((row, col))
-                if isValidBishopMove(app, currR, currC, row, col, 1):
+                if isValidBishopMove(app, app.pieces, currR, currC, row, col, 1):
                     bishopSet.append((row, col))
-                if isValidQueenMove(app, currR, currC, row, col, 1):
+                if isValidQueenMove(app, app.pieces, currR, currC, row, col, 1):
                     queenSet.append((row, col))
                 if isValidKingBackTrack(app, currR, currC, row, col, 1):
                     kingSet.append((row, col))
@@ -806,13 +953,13 @@ def whiteMoves(app, currR, currC):
         for col in range(8):
             if isValidPawnBackTrack(app, currR, currC, row, col, 0):
                 pawnSet.append((row, col))
-            if isValidRookMove(app, currR, currC, row, col, 0):
+            if isValidRookMove(app, app.pieces, currR, currC, row, col, 0):
                 rookSet.append((row, col))
-            if isValidKnightMove(app, currR, currC, row, col, 0):
+            if isValidKnightMove(app, app.pieces, currR, currC, row, col, 0):
                 knightSet.append((row, col))
-            if isValidBishopMove(app, currR, currC, row, col, 0):
+            if isValidBishopMove(app, app.pieces, currR, currC, row, col, 0):
                 bishopSet.append((row, col))
-            if isValidQueenMove(app, currR, currC, row, col, 0):
+            if isValidQueenMove(app, app.pieces, currR, currC, row, col, 0):
                 queenSet.append((row, col))
             if isValidKingBackTrack(app, currR, currC, row, col, 0):
                 kingSet.append((row, col))
@@ -934,7 +1081,7 @@ def clearValidMoves(app):
 def updateValidMoves(app, currR, currC):
     for row in range(8):
         for col in range(8):
-            if isValidMove(app, row, col, currR, currC):
+            if isValidMove(app, app.pieces, row, col, currR, currC):
                 app.validMoves[row][col]=True
 
 ###############################################################################
@@ -953,7 +1100,7 @@ def isValidPawnBackTrack(app, currR, currC, row, col, color):
 
 # Try the move to see if it will break the check
 def isGoodMove(app, row, col, currR, currC):
-    if isValidMove(app, row, col, currR, currC):
+    if isValidMove(app, app.pieces, row, col, currR, currC):
         return tryMove(app, row, col, currR, currC)
     else: return False
 
@@ -975,16 +1122,70 @@ def tryMove(app, row, col, currR, currC):
     else:
         result=True
     # Reset the move
-    if myPiece[0]==app.player and myPiece[1]=="king":
-        app.kingLoc[app.player]=(currR, currC)
+    if myPiece[1]=="king":
+        app.kingLoc[player]=(currR, currC)
     app.pieces[row][col]=otherPiece
     app.pieces[currR][currC]=myPiece
     update_killzones(app)
     print("Move tried:", currR, currC, row, col, result)
     return result
 
+# Returns a set of all valid moves 
+def allValidMoves(app, board, player):
+    result=set()
+    for row in range(8):
+        for col in range(8):
+            if board[row][col][0]==player:
+                result=result.union(validMovesFromRowCol(app, board, player, row, col))
+            else: continue
+    return result
+
+# Returns a set of valid moves from [row][col]
+def validMovesFromRowCol(app, board, player, currR, currC):
+    result=set()
+    for row in range(8):
+        for col in range(8):
+            piece=board[currR][currC][1]
+            # Checks for friendly piece collision
+            if board[row][col][0]==player: continue
+            # Checks valid moves based on piece type
+            if piece=="pawn":
+                if currR==6 and player==app.player:
+                    if isValidStartPawnMove(app, board, currR, currC, row, col, player):
+                        result.add((currR, currC, row, col))
+                    else: continue
+                elif currR==1 and player!=app.player:
+                    if isValidStartPawnMove(app, board, currR, currC, row, col, player):
+                        result.add((currR, currC, row, col))
+                    else: continue
+                else:
+                    if isValidPawnMove(app, board, currR, currC, row, col, player):
+                        result.add((currR, currC, row, col))
+                    else: continue
+            elif piece=="rook":
+                if isValidRookMove(app, board, currR, currC, row, col, player):
+                    result.add((currR, currC, row, col))
+                else: continue
+            elif piece=="knight":
+                if isValidKnightMove(app, board, currR, currC, row, col, player):
+                    result.add((currR, currC, row, col))
+                else: continue
+            elif piece=="bishop":
+                if isValidBishopMove(app, board, currR, currC, row, col, player):
+                    result.add((currR, currC, row, col))
+                else: continue
+            elif piece=="queen":
+                if isValidQueenMove(app, board, currR, currC, row, col, player):
+                    result.add((currR, currC, row, col))
+                else: continue
+            elif piece=="king":
+                if AIisValidKingMove(app, board, currR, currC, row, col, player):
+                    result.add((currR, currC, row, col))
+                else: continue
+    return result
+
 # Checks if [row][col] is a valid move from [currR][currC]
-def isValidMove(app, row, col, currR, currC):
+def isValidMove(app, board, row, col, currR, currC):
     color=app.pieces[currR][currC][0]
     piece=app.pieces[currR][currC][1]
     # Checks for friendly piece collision
@@ -992,68 +1193,104 @@ def isValidMove(app, row, col, currR, currC):
     # Checks valid moves based on piece type
     if piece=="pawn":
         if currR==6:
-            return isValidStartPawnMove(app, currR, currC, row, col, color)
+            return isValidStartPawnMove(app, board, currR, currC, row, col, color)
         else:
-            return isValidPawnMove(app, currR, currC, row, col, color)
+            return isValidPawnMove(app, board, currR, currC, row, col, color)
     elif piece=="rook":
-        return isValidRookMove(app, currR, currC, row, col, color)
+        return isValidRookMove(app, board, currR, currC, row, col, color)
     elif piece=="knight":
-        return isValidKnightMove(app, currR, currC, row, col, color)
+        return isValidKnightMove(app, board, currR, currC, row, col, color)
     elif piece=="bishop":
-        return isValidBishopMove(app, currR, currC, row, col, color)
+        return isValidBishopMove(app, board, currR, currC, row, col, color)
     elif piece=="queen":
-        return isValidQueenMove(app, currR, currC, row, col, color)
+        return isValidQueenMove(app, board, currR, currC, row, col, color)
     elif piece=="king":
-        return isValidKingMove(app, currR, currC, row, col, color)
+        return isValidKingMove(app, board, currR, currC, row, col, color)
 
 # Checks if [row][col] is a valid start pawn move from [currR][currC]
-def isValidStartPawnMove(app, currR, currC, row, col, color):
-    # Empty cells move set
-    if app.pieces[row][col]==(None, "empty"):
-        if (col==currC) and ((currR==row+1)or (currR==row+2)):
-            return True
-        else: return False
-    # Enemy eating movement set
+def isValidStartPawnMove(app, board, currR, currC, row, col, color):
+    if color==app.player:
+        # Empty cells move set
+        if board[row][col]==(None, "empty"):
+            if (col==currC) and ((currR==row+1)or (currR==row+2)):
+                return True
+            else: return False
+        # Enemy eating movement set
+        else:
+            if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else: return False
     else:
-        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
-            return True
-        else: return False
+        # Empty cells move set
+        if board[row][col]==(None, "empty"):
+            if (col==currC) and ((currR==row-1)or (currR==row-2)):
+                return True
+            else: return False
+        # Enemy eating movement set
+        else:
+            if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else: return False
 
 # Checks if [row][col] is a valid normal pawn move from [currR][currC]
-def isValidPawnMove(app, currR, currC, row, col, color):
-    # Empty cells move set
-    if app.pieces[row][col]==(None, "empty"):
-        if (col==currC) and (currR==row+1):
-            return True
-        else: 
-            # En Passant
-            if app.lastMove!=None:
-                (elem, originR, originC, dRow, dCol)=app.lastMove
-                c=elem[0]
-                piece=elem[1]
-                if ((currR==3) and (color!=c) and (piece=="pawn") and 
-                    (originR==1) and (dRow==3) and ((originC==currC+1) or (originC==currC-1))):
-                    if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
-                        return True
-                    else: return False
-                else:return False
+def isValidPawnMove(app, board, currR, currC, row, col, color):
+    if color==app.player:
+        # Empty cells move set
+        if board[row][col]==(None, "empty"):
+            if (col==currC) and (currR==row+1):
+                return True
+            else: 
+                # En Passant
+                if app.lastMove!=None:
+                    (elem, originR, originC, dRow, dCol)=app.lastMove
+                    c=elem[0]
+                    piece=elem[1]
+                    if ((currR==3) and (color!=c) and (piece=="pawn") and 
+                        (originR==1) and (dRow==3) and ((originC==currC+1) or (originC==currC-1))):
+                        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                            return True
+                        else: return False
+                    else:return False
+                else: return False
+        # Enemy eating movement set
+        else:
+            if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
+                return True
             else: return False
-    # Enemy eating movement set
     else:
-        if (currR==row+1) and ((col==currC-1) or (col==currC+1)):
-            return True
-        else: return False
+        # Empty cells move set
+        if board[row][col]==(None, "empty"):
+            if (col==currC) and (currR==row-1):
+                return True
+            else: 
+                # En Passant
+                if app.lastMove!=None:
+                    (elem, originR, originC, dRow, dCol)=app.lastMove
+                    c=elem[0]
+                    piece=elem[1]
+                    if ((currR==4) and (color!=c) and (piece=="pawn") and 
+                        (originR==6) and (dRow==4) and ((originC==currC+1) or (originC==currC-1))):
+                        if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
+                            return True
+                        else: return False
+                    else:return False
+                else: return False
+        # Enemy eating movement set
+        else:
+            if (currR==row-1) and ((col==currC-1) or (col==currC+1)):
+                return True
+            else: return False
 
 # Checks if [row][col] is a valid rook move from [currR][currC]
-def isValidRookMove(app, currR, currC, row, col, color):
+def isValidRookMove(app, board, currR, currC, row, col, color):
     # Not moving is not a valid move
     if row==currR and col==currC: 
         return False
     else:
         # Gets the furthest possible column positions
-        leftC, rightC=nearestPieceOnRow(app, currR, currC)
+        leftC, rightC=nearestPieceOnRow(app, board, currR, currC)
         # Gets the furthest possible row positions
-        topR, botR=nearestPieceOncol(app, currR, currC)
+        topR, botR=nearestPieceOncol(app, board, currR, currC)
         if col==currC:
             if botR<=row<=topR:
                 return True
@@ -1065,7 +1302,7 @@ def isValidRookMove(app, currR, currC, row, col, color):
         else: return False
  
  # Checks if [row][col] is a valid knight move from [currR][currC]
-def isValidKnightMove(app, currR, currC, row, col, color):
+def isValidKnightMove(app, board, currR, currC, row, col, color):
     # Not moving is not a valid move
     if row==currR and col==currC: return False
     else:
@@ -1078,15 +1315,15 @@ def isValidKnightMove(app, currR, currC, row, col, color):
         return False
 
 # Checks if [row][col] is a valid bishop move from [currR][currC]
-def isValidBishopMove(app, currR, currC, row, col, color):
+def isValidBishopMove(app, board, currR, currC, row, col, color):
     # Not moving is not a valid move
     if row==currR and col==currC: 
         return False
     else:
         leftD, Lindex=Ldiag(currR, currC)
-        Lleft, Lright=nearestPieceLDiag(app, currR, currC)
+        Lleft, Lright=nearestPieceLDiag(app, board, currR, currC)
         rightD, Rindex=Rdiag(currR, currC)
-        Rleft, Rright=nearestPieceRDiag(app, currR, currC)
+        Rleft, Rright=nearestPieceRDiag(app, board, currR, currC)
         for coord in rightD[Rleft:Rright+1]:
             if (row, col)==coord:
                 return True
@@ -1096,9 +1333,9 @@ def isValidBishopMove(app, currR, currC, row, col, color):
         return False
 
 # Checks if [row][col] is a valid queen move from [currR][currC]
-def isValidQueenMove(app, currR, currC, row, col, color):
-    return (isValidBishopMove(app, currR, currC, row, col, color) or
-                    isValidRookMove(app, currR, currC, row, col, color))
+def isValidQueenMove(app, board, currR, currC, row, col, color):
+    return (isValidBishopMove(app, board, currR, currC, row, col, color) or
+                    isValidRookMove(app, board, currR, currC, row, col, color))
 
 # Backtracking king used to update killzones
 # Exclude castling move
@@ -1119,8 +1356,19 @@ def isValidKingBackTrack(app, currR, currC, row, col, color):
         else: 
             return False
 
+# Checks if [row][col] is a valid king move from [currR][currC] but without kzs
+def AIisValidKingMove(app, board, currR, currC, row, col, color):
+    # Not moving is not a valid move
+    if row==currR and col==currC: return False
+    else:
+        if (((currR+1==row) or (currR-1==row) or (currR==row)) 
+            and ((currC+1==col) or (currC-1==col) or (currC==col))):
+            return True
+        else:
+            return False
+
 # Checks if [row][col] is a valid king move from [currR][currC]
-def isValidKingMove(app, currR, currC, row, col, color):
+def isValidKingMove(app, board, currR, currC, row, col, color):
     # Not moving is not a valid move
     if row==currR and col==currC: return False
     else:
@@ -1200,21 +1448,21 @@ def isValidLeftBlackCastling(app, currR, currC, row, col):
 
 # Returns the coordinates of the closest pieces to [currR][currC] 
 # on the same left diagonal
-def nearestPieceLDiag(app, currR, currC):
+def nearestPieceLDiag(app, board, currR, currC):
     diag, index=Ldiag(currR, currC)
     left=0
     right=len(diag)-1
     i=index-1
     while i>=0:
         (row, col)=diag[i]
-        if app.pieces[row][col]!=(None, "empty"):
+        if board[row][col]!=(None, "empty"):
             left=i
             break
         i-=1
     i=index+1
     while i<len(diag):
         (row, col)=diag[i]
-        if app.pieces[row][col]!=(None, "empty"):
+        if board[row][col]!=(None, "empty"):
             right=i
             break
         i+=1
@@ -1222,21 +1470,21 @@ def nearestPieceLDiag(app, currR, currC):
 
 # Returns the coordinates of the closest pieces to [currR][currC] 
 # on the same right diagonal
-def nearestPieceRDiag(app, currR, currC):
+def nearestPieceRDiag(app, board, currR, currC):
     diag, index=Rdiag(currR, currC)
     left=0
     right=len(diag)-1
     i=index-1
     while i>=0:
         (row, col)=diag[i]
-        if app.pieces[row][col]!=(None, "empty"):
+        if board[row][col]!=(None, "empty"):
             left=i
             break
         i-=1
     i=index+1
     while i<len(diag):
         (row, col)=diag[i]
-        if app.pieces[row][col]!=(None, "empty"):
+        if board[row][col]!=(None, "empty"):
             right=i
             break
         i+=1
@@ -1283,36 +1531,36 @@ def Rdiag(currR, currC):
     return result, index
 
 # Returns the row of the closest piece to [currR][currC] on the same column
-def nearestPieceOnRow(app, currR, currC):
+def nearestPieceOnRow(app, board, currR, currC):
     rightC=7
     leftC=0
     i=currC+1
     while i<8:
-        if app.pieces[currR][i]!=(None, "empty"):
+        if board[currR][i]!=(None, "empty"):
             rightC=i
             break
         i+=1
     i=currC-1
     while i>=0:
-        if app.pieces[currR][i]!=(None, "empty"):
+        if board[currR][i]!=(None, "empty"):
             leftC=i
             break
         i-=1
     return leftC, rightC
 
 # Returns the col of the closest piece to [currR][currC] on the same row
-def nearestPieceOncol(app, currR, currC):
+def nearestPieceOncol(app, board, currR, currC):
     topR=7
     botR=0
     i=currR+1
     while i<8:
-        if app.pieces[i][currC]!=(None, "empty"):
+        if board[i][currC]!=(None, "empty"):
             topR=i
             break
         i+=1
     i=currR-1
     while i>=0:
-        if app.pieces[i][currC]!=(None, "empty"):
+        if board[i][currC]!=(None, "empty"):
             botR=i
             break
         i-=1
@@ -1337,9 +1585,9 @@ def getCellBounds(app, row, col):
 ###############################################################################
 # Move Making Functions
 
-# Moves the selected chess piece to the destination cell
-def makeMove(app, row, col, currR, currC):
-    piece=app.pieces[currR][currC]
+# Moves the selected chess piece to the destination cell on the designated board
+def makeMove(app, board, row, col, currR, currC):
+    piece=board[currR][currC]
     player=piece[0]
     # Update the king's location if the player is moving his king
     if piece[1]=="king":
@@ -1355,22 +1603,29 @@ def makeMove(app, row, col, currR, currC):
             app.rightRookMoved[player]=True
         elif currC==7:
             app.leftRookMoved[app.player]=True
-    app.pieces[currR][currC]=(None, "empty")
-    app.pieces[row][col]=piece
+    board[currR][currC]=(None, "empty")
+    board[row][col]=piece
     update_killzones(app)
     updateCastlingEligibility(app, app.player)
     app.oldLoc=None
     app.makingMove=False
 
+# Moves the piece for the AI based on its input
+def AIMovePiece(app, row, col, currR, currC):
+    makeMove(app, app.pieces, row, col, currR, currC)
+    app.lastMove=(app.pieces[row][col], currR, currC, row, col)
+    app.localWent=app.AIPlayer
+
 # Makes the move based on the piece the user selected locally
 def localMovePiece(app, row, col, currR, currC):
-    if isValidMove(app, row, col, currR, currC):
+    if isValidMove(app, app.pieces, row, col, currR, currC):
+        player=app.pieces[currR][currC][0]
         # Checks if the move just made enables the player to promote a pawn
         if ((app.pieces[currR][currC][1]=="pawn") and
             (row==0)):
-            app.mode="pawnPromotion"
+            app.mode="localPawnPromotion"
             app.promotingPawn=(currR, currC, row, col)
-            makeMove(app, row, col, currR, currC)
+            makeMove(app, app.pieces, row, col, currR, currC)
             clearOutlines(app)
         else:
             # En Passant
@@ -1391,8 +1646,10 @@ def localMovePiece(app, row, col, currR, currC):
                     rook=app.pieces[row][col-2]
                     app.pieces[row][col+1]=rook
                     app.pieces[row][col-2]=(None, "empty")
-            makeMove(app, row, col, currR, currC)
+            makeMove(app, app.pieces, row, col, currR, currC)
             clearOutlines(app)
+            app.lastMove=(app.pieces[row][col], currR, currC, row, col)
+            app.localWent=player
     # Clear outlines
     else:
         unselectPiece(app)
@@ -1401,14 +1658,14 @@ def localMovePiece(app, row, col, currR, currC):
 # Make the move based on the piece the user selected 
 # and send data to the server
 def onlineMovePiece(app, row, col, currR, currC):
-    if isValidMove(app, row, col, currR, currC):
+    if isValidMove(app, app.pieces, row, col, currR, currC):
         # Checks if the move just made enables the player to promote a pawn
         if ((app.pieces[currR][currC][1]=="pawn") and
             (row==0)):
-            app.mode="pawnPromotion"
+            app.mode="onlinePawnPromotion"
             app.promotingPawn=(currR, currC, row, col)
             app.n.send("resetSpecialMoves")
-            makeMove(app, row, col, currR, currC)
+            makeMove(app, app.pieces, row, col, currR, currC)
             clearOutlines(app)
         else:
             app.n.send((currR, currC, row, col))
@@ -1437,7 +1694,7 @@ def onlineMovePiece(app, row, col, currR, currC):
                     app.n.send("LeftCastling")
             else:
                 app.n.send("resetSpecialMoves")
-            makeMove(app, row, col, currR, currC)
+            makeMove(app, app.pieces, row, col, currR, currC)
             clearOutlines(app)
     # Clear outlines
     else:
@@ -1498,10 +1755,11 @@ def checkMovesFromRowCol(app, currR, currC):
 # Checks if the player's king is being checked
 def isChecked(app, player):
     (row, col)=app.kingLoc[player]
-    if app.player==0:
+    print(row, col)
+    if player==0:
         if app.blackKZ[row][col]: return True
         else: return False
-    elif app.player==1:
+    elif player==1:
         if app.whiteKZ[row][col]: return True
         else: return False
 
@@ -1518,15 +1776,19 @@ def drawCell(app, canvas, row, col):
         fill="grey"
     else:
         fill="white"
-    if app.kzOutlines[row][col] is True:
-        canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='red', 
-                                width=4)
-    elif app.validMoves[row][col] is True:
-        canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='green', 
-                                width=4)
+    if app.easyMode:
+        if app.kzOutlines[row][col] is True:
+            canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='red', 
+                                    width=4)
+        elif app.validMoves[row][col] is True:
+            canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='green', 
+                                    width=4)
+        else:
+            canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='black', 
+                                    width=3)
     else:
         canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='black', 
-                                width=3)
+                                    width=3)
 
 # Draws the chess board
 def drawBoard(app, canvas):

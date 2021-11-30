@@ -1,6 +1,9 @@
+"""Local Chess Client"""
+
 import tkinter, pickle, random, time, os
 from cmu_112_graphics import *
 from network import Network
+from _thread import *
 
 #######################################################
 # Landing Page #
@@ -538,7 +541,7 @@ def localMode_redrawAll(app, canvas):
     canvas.create_rectangle(easyBtn[0], easyBtn[1], easyBtn[2], easyBtn[3], fill="light blue")
     canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//24), text="*Move Assistance highlight valid moves in green", font=f'Times {fontSize1}')
     canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//15), text="and danger zone in red when you select a piece", font=f'Times {fontSize1}')
-    if app.localWent==app.player:
+    if app.AIdrawing:
         canvas.create_text(app.width/2, app.height-(app.height//6), text="Waiting for AI to make a move", font=f'Times {fontSize2} bold')
     else:
         canvas.create_text(app.width/2, app.height-(app.height//6), text="Your Move", font=f'Times {fontSize2} bold')
@@ -553,7 +556,7 @@ def localMode_mousePressed(app, event):
     y=event.y
     print("number:", pieceNum(app, app.pieces))
     easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
-            (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
+            (app.width/2)+(app.width//4.8), (app.height-(app.height//12))) 
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
         y in range(int(easyBtn[1]), int(easyBtn[3]))):
         app.easyMode=not app.easyMode
@@ -578,11 +581,13 @@ def localMode_mousePressed(app, event):
                 currR=app.oldLoc[0]
                 currC=app.oldLoc[1]
                 if not isChecked(app, app.player):
+                    app.AIdrawing=True
                     localMovePiece(app, row, col, currR, currC)
                     update_killzones(app)
                 else:
                     if isGoodMove(app, row, col, currR, currC):
                         selectPiece(app, currR, currC)
+                        app.AIdrawing=True
                         localMovePiece(app, row, col, currR, currC)
                         update_killzones(app)
                     else:
@@ -603,6 +608,8 @@ def localMode_timerFired(app):
     app.whitePieces=dict() 
     init_sprites(app)
     if app.localWent==app.player:
+        if app.AIdrawing:
+            app.AIdrawing=False
         # Check if the player achieved a checkmate
         if checkMate(app, app.AIPlayer):
             app.checkMate[app.AIPlayer]=True
@@ -846,6 +853,7 @@ def appStarted(app):
     app.checkDict=init_check()
     # Initialize value multipliers list for minimax
     app.valueMultipliers=init_multipliers()
+    app.AIdrawing=False
 
 ###############################################################################
 # Initialization Functions
@@ -952,10 +960,7 @@ def value(app, board):
         for col in range(8):
             color=board[row][col][0]
             piece=board[row][col][1]
-            if (color!=None) and (piece!="king"):
-                val=app.values[(color, piece)]
-                result+=val
-            elif color!=None:
+            if color!=None:
                 val=app.values[(color, piece)]
                 result+=val
     return result
@@ -1007,7 +1012,7 @@ def maximize(app, board, depth, alpha, beta):
             # Alpha-Beta Pruning
             alpha=max(alpha, best_value)
             if beta<=alpha: break
-        else:
+        else:  
             if (minValue>best_value) and isGoodMove(app, row, col, currR, currC):
                 best_value=minValue
                 optimal_move=move
@@ -1114,7 +1119,7 @@ def validMovesFromRowCol(app, board, player, currR, currC):
             # Checks for friendly piece collision
             if board[row][col][0]==player: continue
             # Checks valid moves based on piece type
-            if piece=="pawn":
+            if piece=="pawn": 
                 if currR==6 and player==app.player:
                     if isValidStartPawnMove(app, board, currR, currC, row, col, player):
                         result.append((currR, currC, row, col))
@@ -2156,7 +2161,7 @@ def loadPieces(app, canvas):
             canvas.create_image(x, y, image=ImageTk.PhotoImage(sprite))
 
 def chessAnimation():
-    runApp(width=480, height=600)
+    runApp(width=480, height=600, mvcCheck=False)
 
 if __name__=="__main__":
     chessAnimation()

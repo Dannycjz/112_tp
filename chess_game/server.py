@@ -1,4 +1,6 @@
-"""References for this file:
+"""
+File used to start a server on the local network
+References for this file:
     https://docs.python.org/3/library/socket.html
     https://docs.python.org/3/library/_thread.html
     https://pythonprogramming.net/pickle-objects-sockets-tutorial-python-3/

@@ -1,4 +1,5 @@
 """ 
+Game Class used to communicate between the server and the local clients
 Object concept copied from 
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 """

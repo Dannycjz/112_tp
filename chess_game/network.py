@@ -1,6 +1,7 @@
 import socket, pickle
 
 '''
+Network class used by local client to connect to the server
 Class basically copied from:
 www.techwithtim.net/tutorials/python-online-game-tutorial/connecting-multiple-clients/
 Changed the data sending/reception to use pickle instead of string encoding/decoding

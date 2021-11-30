@@ -99,7 +99,6 @@ def multi_mousePressed(app, event):
             app.pieces=init_piece(app)
             app.kingLoc=[(7, 4), (0, 4)]
             app.mode="wait"
-            print("playing as:", app.player)
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
         app.player=1
         app.connecting=True
@@ -111,7 +110,6 @@ def multi_mousePressed(app, event):
             app.pieces=init_piece(app)
             app.kingLoc=[(0, 4), (7, 4)]
             app.mode="wait"
-            print("playing as:", app.player)
     elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
         app.mode="landingPage"
     else:pass
@@ -206,18 +204,6 @@ def failed_mousePressed(app, event):
         exit()
 
 #######################################################
-# Rejected Page #
-#######################################################
-
-def rejected_redrawAll(app, canvas):
-    fontSize1=int(min(app.height, app.width)/18)
-    canvas.create_text(app.width/2, app.height/2, 
-                        text='No white player online yet, please try again later', font=f'Times {fontSize1} bold')
-
-def rejected_keyPressed(app, event):
-    pass
-
-#######################################################
 # Waiting Page #
 #######################################################
 
@@ -292,6 +278,17 @@ def victory_mousePressed(app, event):
     if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and
         y in range(int(quitBtn[1]), int(quitBtn[3]))):
         exit()
+
+def victory_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
+
 #######################################################
 # Defeat Page #
 #######################################################
@@ -309,15 +306,23 @@ def defeat_redrawAll(app, canvas):
     canvas.create_text(quitBtnCenter[0], quitBtnCenter[1], text='Quit', font=f'Times {fontSize2}')
 
 def defeat_mousePressed(app, event):
-    print(app.checkDict)
     quitBtn=((app.width/2)-(app.width/4.8), (app.height-(app.height/12)), 
             (app.width/2)+(app.width/4.8), (app.height-(app.height/30)))
     x=event.x
     y=event.y
     if ((x in range(int(quitBtn[0]), int(quitBtn[2]))) and
         y in range(int(quitBtn[1]), int(quitBtn[3]))):
-        update_hash(app)
         exit()
+
+def defeat_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
 
 #######################################################
 # Multiplayer Pawn Promotion Page #
@@ -393,6 +398,16 @@ def onlinePawnPromotion_redrawAll(app, canvas):
     loadPieces(app, canvas)
     onlinePawnPromotion_loadPieces(app, canvas)
     canvas.create_text(app.width/2, app.height-(app.height//20), text='Pawn Promotion', font=f'Times {fontSize1} bold')
+
+def onlinePawnPromotion_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
 
 #######################################################
 # Singleplayer Pawn Promotion Page #
@@ -470,6 +485,16 @@ def localPawnPromotion_redrawAll(app, canvas):
     localPawnPromotion_loadPieces(app, canvas)
     canvas.create_text(app.width/2, app.height-(app.height//20), text='Pawn Promotion', font=f'Times {fontSize1} bold')
 
+def localPawnPromotion_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
+
 #######################################################
 # Waiting Page #
 #######################################################
@@ -481,6 +506,14 @@ def waiting_redrawAll(app, canvas):
     canvas.create_text(app.width/2, app.height-(app.height//12), text="Waiting for Opponent's Move", font=f'Times {fontSize1} bold')
 
 def waiting_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
     try:
     # Tries to get game from server
         app.game=app.n.send("get")
@@ -518,7 +551,7 @@ def localMode_redrawAll(app, canvas):
 def localMode_mousePressed(app, event):
     x=event.x
     y=event.y
-    print("board value=", value(app, app.pieces))
+    print("number:", pieceNum(app, app.pieces))
     easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
             (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
@@ -561,8 +594,15 @@ def localMode_mousePressed(app, event):
         pass
 
 def localMode_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
     if app.localWent==app.player:
-        print("player went")
         # Check if the player achieved a checkmate
         if checkMate(app, app.AIPlayer):
             app.checkMate[app.AIPlayer]=True
@@ -594,7 +634,6 @@ def onlineMode_mousePressed(app, event):
     y=event.y
     easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
             (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
-    print(app.checkDict)
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
         y in range(int(easyBtn[1]), int(easyBtn[3]))):
         app.easyMode=not app.easyMode
@@ -636,6 +675,14 @@ def onlineMode_mousePressed(app, event):
         pass
 
 def onlineMode_timerFired(app):
+    app.cellSize=min(app.width, (app.height/6)*4.8)/8
+    scale=app.cellSize/90
+    sprites=app.loadImage(os.path.join(sys.path[0], "chessSprites.png"))
+    app.chessSprites=app.scaleImage(sprites, scale)
+    # Initates dicts that store the sprites of chess pieces
+    app.blackPieces=dict()
+    app.whitePieces=dict() 
+    init_sprites(app)
     try:
     # Tries to get game from server
         app.game=app.n.send("get")
@@ -808,6 +855,10 @@ def init_check():
     file.close()
     return result
 
+"""
+Zobrist Hashing concept from 
+https://medium.com/@SereneBiologist/the-anatomy-of-a-chess-ai-2087d0d565
+"""
 # Initiate Zob table from file
 def init_Zob():
     file = open(os.path.join(sys.path[0], "zobTable.pkl"),"rb")
@@ -887,26 +938,28 @@ def init_values():
 ###############################################################################
 # Minimax Algorithm
 
-# Returns the value of a given board based on the pieces
+# Returns the value of a given board based on pieces
+# Pieces are worth more if they are close to the center
 def value(app, board):
     result=0
     for row in range(8):
         for col in range(8):
             color=board[row][col][0]
             piece=board[row][col][1]
-            if color!=None:
+            if (color!=None) and (piece!="king"):
                 val=app.values[(color, piece)]
-                print(piece, "added", val)
                 result+=val
-                print("result:", result)
+            elif color!=None:
+                val=app.values[(color, piece)]
+                result+=val
     return result
 
 # Minmax algo where white is minimizing and black is maximizing
 # Returns the optimal move for the current player on the board
 def minimax(app, player):
-    print(player)
     alpha=float("-inf")
     beta=float("inf")
+    print("minimax p:", player)
     if app.checkMate[player]:
         return None
     # White move (minimize)
@@ -927,6 +980,9 @@ def maximize(app, board, depth, alpha, beta):
     best_value=float("-inf")
     optimal_move=None
     moves=allValidMoves(app, board, 1)
+    # Move sorting on the first level depth
+    if depth==0:
+        moves=sortMoves(app, moves, board)
     for move in moves:
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
@@ -945,7 +1001,6 @@ def maximize(app, board, depth, alpha, beta):
             # Alpha-Beta Pruning
             alpha=max(alpha, best_value)
             if beta<=alpha: break
-            else: continue
     return (optimal_move, best_value)
 
 # Returns the optimal move and the value of the resulting board 
@@ -957,6 +1012,9 @@ def minimize(app, board, depth, alpha, beta):
     best_value=float("inf")
     optimal_move=None
     moves=allValidMoves(app, board, 0)
+    # Move sorting on the first level depth
+    if depth==0:
+        moves=sortMoves(app, moves, board)
     for move in moves:
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
@@ -966,6 +1024,7 @@ def minimize(app, board, depth, alpha, beta):
                 best_value=tmpValue
                 optimal_move=move
             beta=min(beta, best_value)
+            # Alpha-Beta pruning
             if beta<=alpha:break
         else:
             if tmpValue<best_value and isGoodMove(app, row, col, currR, currC):
@@ -995,6 +1054,84 @@ def randomizer(app, player):
         move=moves.pop()
     return move
     
+# Returns the number of pieces on the board
+def pieceNum(app, board):
+    result=0
+    for row in range(8):
+        for col in range(8):
+            if board[row][col][0]!=None:
+                result+=1
+    return result
+
+# Sorts the moves based on if they result in piece eating
+def sortMoves(app, moves, board):
+    sortedMoves=list()
+    oldCount=pieceNum(app, board)
+    for move in moves:
+        (currR, currC, row, col)=move
+        resultBoard=result(app, board, currR, currC, row, col)
+        newCount=pieceNum(app, resultBoard)
+        if newCount<oldCount:
+            sortedMoves.append(move)
+            moves.remove(move)
+    for move in moves:
+        sortedMoves.append(move)
+    return sortedMoves
+
+# Returns a set of all valid moves 
+def allValidMoves(app, board, player):
+    result=list()
+    for row in range(8):
+        for col in range(8):
+            if board[row][col][0]==player:
+                result.extend(validMovesFromRowCol(app, board, player, row, col))
+            else: continue
+    return result
+
+# Returns a set of valid moves from [row][col]
+def validMovesFromRowCol(app, board, player, currR, currC):
+    result=list()
+    for row in range(8):
+        for col in range(8):
+            piece=board[currR][currC][1]
+            # Checks for friendly piece collision
+            if board[row][col][0]==player: continue
+            # Checks valid moves based on piece type
+            if piece=="pawn":
+                if currR==6 and player==app.player:
+                    if isValidStartPawnMove(app, board, currR, currC, row, col, player):
+                        result.append((currR, currC, row, col))
+                    else: continue
+                elif currR==1 and player!=app.player:
+                    if isValidStartPawnMove(app, board, currR, currC, row, col, player):
+                        result.append((currR, currC, row, col))
+                    else: continue
+                else:
+                    if isValidPawnMove(app, board, currR, currC, row, col, player):
+                        result.append((currR, currC, row, col))
+                    else: continue
+            elif piece=="rook":
+                if isValidRookMove(app, board, currR, currC, row, col, player):
+                    result.append((currR, currC, row, col))
+                else: continue
+            elif piece=="knight":
+                if isValidKnightMove(app, board, currR, currC, row, col, player):
+                    result.append((currR, currC, row, col))
+                else: continue
+            elif piece=="bishop":
+                if isValidBishopMove(app, board, currR, currC, row, col, player):
+                    result.append((currR, currC, row, col))
+                else: continue
+            elif piece=="queen":
+                if isValidQueenMove(app, board, currR, currC, row, col, player):
+                    result.append((currR, currC, row, col))
+                else: continue
+            elif piece=="king":
+                if AIisValidKingMove(app, board, currR, currC, row, col, player):
+                    result.append((currR, currC, row, col))
+                else: continue
+    return result
+
 ###############################################################################
 # Status Update Functions
 
@@ -1284,19 +1421,43 @@ def tryMove(app, row, col, currR, currC):
     print("Move tried:", currR, currC, row, col, result)
     return result
 
+# Returns the number of pieces on the board
+def pieceNum(app, board):
+    result=0
+    for row in range(8):
+        for col in range(8):
+            if board[row][col][0]!=None:
+                result+=1
+    return result
+
+# Sorts the moves based on if they result in piece eating
+def sortMoves(app, moves, board):
+    sortedMoves=list()
+    oldCount=pieceNum(app, board)
+    for move in moves:
+        (currR, currC, row, col)=move
+        resultBoard=result(app, board, currR, currC, row, col)
+        newCount=pieceNum(app, resultBoard)
+        if newCount<oldCount:
+            sortedMoves.append(move)
+            moves.remove(move)
+    for move in moves:
+        sortedMoves.append(move)
+    return sortedMoves
+
 # Returns a set of all valid moves 
 def allValidMoves(app, board, player):
-    result=set()
+    result=list()
     for row in range(8):
         for col in range(8):
             if board[row][col][0]==player:
-                result=result.union(validMovesFromRowCol(app, board, player, row, col))
+                result.extend(validMovesFromRowCol(app, board, player, row, col))
             else: continue
     return result
 
 # Returns a set of valid moves from [row][col]
 def validMovesFromRowCol(app, board, player, currR, currC):
-    result=set()
+    result=list()
     for row in range(8):
         for col in range(8):
             piece=board[currR][currC][1]
@@ -1306,35 +1467,35 @@ def validMovesFromRowCol(app, board, player, currR, currC):
             if piece=="pawn":
                 if currR==6 and player==app.player:
                     if isValidStartPawnMove(app, board, currR, currC, row, col, player):
-                        result.add((currR, currC, row, col))
+                        result.append((currR, currC, row, col))
                     else: continue
                 elif currR==1 and player!=app.player:
                     if isValidStartPawnMove(app, board, currR, currC, row, col, player):
-                        result.add((currR, currC, row, col))
+                        result.append((currR, currC, row, col))
                     else: continue
                 else:
                     if isValidPawnMove(app, board, currR, currC, row, col, player):
-                        result.add((currR, currC, row, col))
+                        result.append((currR, currC, row, col))
                     else: continue
             elif piece=="rook":
                 if isValidRookMove(app, board, currR, currC, row, col, player):
-                    result.add((currR, currC, row, col))
+                    result.append((currR, currC, row, col))
                 else: continue
             elif piece=="knight":
                 if isValidKnightMove(app, board, currR, currC, row, col, player):
-                    result.add((currR, currC, row, col))
+                    result.append((currR, currC, row, col))
                 else: continue
             elif piece=="bishop":
                 if isValidBishopMove(app, board, currR, currC, row, col, player):
-                    result.add((currR, currC, row, col))
+                    result.append((currR, currC, row, col))
                 else: continue
             elif piece=="queen":
                 if isValidQueenMove(app, board, currR, currC, row, col, player):
-                    result.add((currR, currC, row, col))
+                    result.append((currR, currC, row, col))
                 else: continue
             elif piece=="king":
                 if AIisValidKingMove(app, board, currR, currC, row, col, player):
-                    result.add((currR, currC, row, col))
+                    result.append((currR, currC, row, col))
                 else: continue
     return result
 
@@ -1366,7 +1527,9 @@ def isValidStartPawnMove(app, board, currR, currC, row, col, color):
     if color==app.player:
         # Empty cells move set
         if board[row][col]==(None, "empty"):
-            if (col==currC) and ((currR==row+1)or (currR==row+2)):
+            if ((col==currC) and 
+                ((currR==row+1)or (currR==row+2)) and
+                (board[currR-1][currC]==(None, "empty"))):
                 return True
             else: return False
         # Enemy eating movement set
@@ -1377,7 +1540,9 @@ def isValidStartPawnMove(app, board, currR, currC, row, col, color):
     else:
         # Empty cells move set
         if board[row][col]==(None, "empty"):
-            if (col==currC) and ((currR==row-1)or (currR==row-2)):
+            if ((col==currC) and 
+                ((currR==row-1)or (currR==row-2)) and
+                (board[currR+1][currC]==(None, "empty"))):
                 return True
             else: return False
         # Enemy eating movement set
@@ -1898,10 +2063,11 @@ def checkMate(app, player):
                         if app.pieces[row][col][0]==player:
                             if checkMovesFromRowCol(app, row, col):
                                 app.checkDict[h]=False
+                                update_hash(app)
                                 return False
                 app.checkMate[player]=True
                 app.checkDict[h]=True
-                print(h, "added to table")
+                update_hash(app)
                 return True
         else:
             return False
@@ -1918,7 +2084,6 @@ def checkMovesFromRowCol(app, currR, currC):
 # Checks if the player's king is being checked
 def isChecked(app, player):
     (row, col)=app.kingLoc[player]
-    print(row, col)
     if player==0:
         if app.blackKZ[row][col]: return True
         else: return False

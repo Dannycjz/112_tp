@@ -860,7 +860,15 @@ def appStarted(app):
 
 # Initialize value multipliers list for minimax
 def init_multipliers():
-    pass
+    result=[[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 
+            [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
+            [1, 1, 1, 1.2, 1.2, 1, 1, 1], 
+            [1.2, 1.2, 1.5, 2, 2, 1.5, 1.2, 1.2], 
+            [1.2, 1.2, 1.5, 2, 2, 1.5, 1.2, 1.2],
+            [1, 1, 1, 1.2, 1.2, 1, 1, 1], 
+            [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]]
+    return result
 
 # Initiate checkMate dict from file
 def init_check():

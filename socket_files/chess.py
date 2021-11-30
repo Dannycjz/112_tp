@@ -844,9 +844,15 @@ def appStarted(app):
     app.zobTable=init_Zob()
     # Initiate checkMate dict
     app.checkDict=init_check()
+    # Initialize value multipliers list for minimax
+    app.valueMultipliers=init_multipliers()
 
 ###############################################################################
 # Initialization Functions
+
+# Initialize value multipliers list for minimax
+def init_multipliers():
+    pass
 
 # Initiate checkMate dict from file
 def init_check():
@@ -920,18 +926,18 @@ def init_piece(app):
 # Initiates the values of each piece as a dictionary
 def init_values():
     values={
-        (0, "pawn"):-1,
-        (0, "rook"):-5,
-        (0, "knight"):-3,
-        (0, "bishop"):-3, 
-        (0, "queen"):-9, 
-        (0, "king"):-500,
-        (1, "pawn"):1,
-        (1, "rook"):5, 
-        (1, "knight"):3, 
-        (1, "bishop"):3, 
-        (1, "queen"):9,
-        (1, "king"):500, 
+        (0, "pawn"):-10,
+        (0, "rook"):-50,
+        (0, "knight"):-30,
+        (0, "bishop"):-30, 
+        (0, "queen"):-90, 
+        (0, "king"):-900,
+        (1, "pawn"):10,
+        (1, "rook"):50, 
+        (1, "knight"):30, 
+        (1, "bishop"):30, 
+        (1, "queen"):90,
+        (1, "king"):900, 
     }
     return values
 
@@ -954,12 +960,15 @@ def value(app, board):
                 result+=val
     return result
 
+"""
+Alpha-Beta Pruning concept from
+https://medium.com/@SereneBiologist/the-anatomy-of-a-chess-ai-2087d0d565
+"""
 # Minmax algo where white is minimizing and black is maximizing
 # Returns the optimal move for the current player on the board
 def minimax(app, player):
     alpha=float("-inf")
     beta=float("inf")
-    print("minimax p:", player)
     if app.checkMate[player]:
         return None
     # White move (minimize)
@@ -971,6 +980,10 @@ def minimax(app, player):
     print("board value:", value)
     return optimal_move
 
+"""
+Alpha-Beta Pruning concept from
+https://medium.com/@SereneBiologist/the-anatomy-of-a-chess-ai-2087d0d565
+"""
 # Returns the optimal move and the value of the resulting board 
 # for the maximizing player
 def maximize(app, board, depth, alpha, beta):
@@ -986,23 +999,27 @@ def maximize(app, board, depth, alpha, beta):
     for move in moves:
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
-        minMove, tmpValue=minimize(app, board, depth+1, alpha, beta)
+        minMove, minValue=minimize(app, board, depth+1, alpha, beta)
         if not isChecked(app, 1):
-            if tmpValue>best_value:
-                best_value=tmpValue
+            if minValue>best_value:
+                best_value=minValue
                 optimal_move=move
             # Alpha-Beta Pruning
             alpha=max(alpha, best_value)
             if beta<=alpha: break
         else:
-            if (tmpValue>best_value) and isGoodMove(app, row, col, currR, currC):
-                best_value=tmpValue
+            if (minValue>best_value) and isGoodMove(app, row, col, currR, currC):
+                best_value=minValue
                 optimal_move=move
             # Alpha-Beta Pruning
             alpha=max(alpha, best_value)
             if beta<=alpha: break
     return (optimal_move, best_value)
 
+"""
+Alpha-Beta Pruning concept from
+https://medium.com/@SereneBiologist/the-anatomy-of-a-chess-ai-2087d0d565
+"""
 # Returns the optimal move and the value of the resulting board 
 # for the minimizing player
 def minimize(app, board, depth, alpha, beta):
@@ -1018,17 +1035,17 @@ def minimize(app, board, depth, alpha, beta):
     for move in moves:
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
-        minMove, tmpValue=maximize(app, board, depth+1, alpha, beta)
+        minMove, maxValue=maximize(app, board, depth+1, alpha, beta)
         if not isChecked(app, 0):
-            if tmpValue<best_value:
-                best_value=tmpValue
+            if maxValue<best_value:
+                best_value=maxValue
                 optimal_move=move
             beta=min(beta, best_value)
             # Alpha-Beta pruning
             if beta<=alpha:break
         else:
-            if tmpValue<best_value and isGoodMove(app, row, col, currR, currC):
-                best_value=tmpValue
+            if maxValue<best_value and isGoodMove(app, row, col, currR, currC):
+                best_value=maxValue
                 optimal_move=move
             # Alpha-Beta pruning
             beta=min(beta, best_value)

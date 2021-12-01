@@ -1,9 +1,8 @@
 """Local Chess Client"""
 
-import tkinter, pickle, random, time, os
+import  pickle,os, pygame
 from cmu_112_graphics import *
 from network import Network
-from _thread import *
 
 #######################################################
 # Landing Page #
@@ -26,8 +25,8 @@ def landingPage_redrawAll(app, canvas):
         AIBtnCenter=((AIBtn[0]+AIBtn[2])/2, (AIBtn[1]+AIBtn[3])/2)
         MultBtnCenter=((MultBtn[0]+MultBtn[2])/2, (MultBtn[1]+MultBtn[3])/2)
         canvas.create_text(app.width/2, app.height/2, text='Welcome To Chess!', font=f'Times {fontSize1} bold')
-        canvas.create_rectangle(AIBtn[0], AIBtn[1], AIBtn[2], AIBtn[3], fill="alice blue")
-        canvas.create_rectangle(MultBtn[0], MultBtn[1], MultBtn[2], MultBtn[3], fill="white")
+        canvas.create_rectangle(AIBtn[0], AIBtn[1], AIBtn[2], AIBtn[3], fill="turquoise2")
+        canvas.create_rectangle(MultBtn[0], MultBtn[1], MultBtn[2], MultBtn[3], fill="DarkGoldenrod1")
         canvas.create_text(AIBtnCenter[0], AIBtnCenter[1], text='Play against AI', fill='black', font=f'Times {fontSize2}')
         canvas.create_text(MultBtnCenter[0], MultBtnCenter[1], text='Play Multiplayer', fill='black', font=f'Times {fontSize2}')
 
@@ -42,8 +41,10 @@ def landingPage_mousePressed(app, event):
     MultBtn=(centerX+(app.width//9.6), (app.height/2)+(app.height//6), 
             centerX+(app.width//9.6)+btnXSize, (app.height/2)+(app.height//6)+btnYSize)
     if (x in range(int(AIBtn[0]), int(AIBtn[2]))) and (y in range(int(AIBtn[1]), int(AIBtn[3]))):
+        app.btnSound.play()
         app.mode="single"
     elif (x in range(int(MultBtn[0]), int(MultBtn[2]))) and (y in range(int(MultBtn[1]), int(MultBtn[3]))):
+        app.btnSound.play()
         app.mode="multi"
     else:pass
 
@@ -77,7 +78,7 @@ def multi_redrawAll(app, canvas):
         canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
         canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font=f'Times {fontSize2}')
         canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font=f'Times {fontSize2}')
-        canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font=f'Times {fontSize2}')
+        canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='maroon', font=f'Times {fontSize2}')
 
 def multi_mousePressed(app, event):
     x=event.x
@@ -92,6 +93,7 @@ def multi_mousePressed(app, event):
     backBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
         centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
+        app.btnSound.play()
         app.connecting=True
         app.player=0
         # Try to connect the player
@@ -103,6 +105,7 @@ def multi_mousePressed(app, event):
             app.kingLoc=[(7, 4), (0, 4)]
             app.mode="wait"
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
+        app.btnSound.play()
         app.player=1
         app.connecting=True
         # Try to connect the player
@@ -114,6 +117,7 @@ def multi_mousePressed(app, event):
             app.kingLoc=[(0, 4), (7, 4)]
             app.mode="wait"
     elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
+        app.btnSound.play()
         app.mode="landingPage"
     else:pass
 
@@ -143,7 +147,7 @@ def single_redrawAll(app, canvas):
     canvas.create_rectangle(backBtn[0], backBtn[1], backBtn[2], backBtn[3], fill="light blue")
     canvas.create_text(whiteBtnCenter[0], whiteBtnCenter[1], text='Play as White', fill='black', font=f'Times {fontSize2}')
     canvas.create_text(blackBtnCenter[0], blackBtnCenter[1], text='Play as Black', fill='white', font=f'Times {fontSize2}')
-    canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='white', font=f'Times {fontSize2}')
+    canvas.create_text(backBtnCenter[0], backBtnCenter[1], text='Return', fill='maroon', font=f'Times {fontSize2}')
 
 def single_mousePressed(app, event):
     x=event.x
@@ -158,18 +162,21 @@ def single_mousePressed(app, event):
     backBtn=(centerX-(btnXSize/2), (app.height/2)+(app.height//4), 
         centerX+(btnXSize/2), (app.height/2)+(app.height//4)+btnYSize)
     if (x in range(int(whiteBtn[0]), int(whiteBtn[2]))) and (y in range(int(whiteBtn[1]), int(whiteBtn[3]))):
+        app.btnSound.play()
         app.player=0
         app.AIPlayer=1
         app.pieces=init_piece(app)
         app.kingLoc=[(7, 4), (0, 4)]
         app.mode="localMode"
     elif (x in range(int(blackBtn[0]), int(blackBtn[2]))) and (y in range(int(blackBtn[1]), int(blackBtn[3]))):
+        app.btnSound.play()
         app.AIPlayer=0
         app.player=1
         app.pieces=init_piece(app)
         app.kingLoc=[(0, 4), (7, 4)]
         app.mode="localMode"
     elif (x in range(int(backBtn[0]), int(backBtn[2]))) and (y in range(int(backBtn[1]), int(backBtn[3]))):
+        app.btnSound.play()
         app.mode="landingPage"
     else:pass
 
@@ -541,7 +548,7 @@ def localMode_redrawAll(app, canvas):
     canvas.create_rectangle(easyBtn[0], easyBtn[1], easyBtn[2], easyBtn[3], fill="light blue")
     canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//24), text="*Move Assistance highlight valid moves in green", font=f'Times {fontSize1}')
     canvas.create_text(easyBtnCenter[0], easyBtnCenter[1]+(app.height//15), text="and danger zone in red when you select a piece", font=f'Times {fontSize1}')
-    if app.AIdrawing:
+    if app.localWent==app.player:
         canvas.create_text(app.width/2, app.height-(app.height//6), text="Waiting for AI to make a move", font=f'Times {fontSize2} bold')
     else:
         canvas.create_text(app.width/2, app.height-(app.height//6), text="Your Move", font=f'Times {fontSize2} bold')
@@ -559,6 +566,7 @@ def localMode_mousePressed(app, event):
             (app.width/2)+(app.width//4.8), (app.height-(app.height//12))) 
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
         y in range(int(easyBtn[1]), int(easyBtn[3]))):
+        app.switchSound.play()
         app.easyMode=not app.easyMode
     if (not app.checkMate[app.player]) and (not app.localWent==app.player):
         cell=selectCell(app, x, y)
@@ -581,13 +589,11 @@ def localMode_mousePressed(app, event):
                 currR=app.oldLoc[0]
                 currC=app.oldLoc[1]
                 if not isChecked(app, app.player):
-                    app.AIdrawing=True
                     localMovePiece(app, row, col, currR, currC)
                     update_killzones(app)
                 else:
                     if isGoodMove(app, row, col, currR, currC):
                         selectPiece(app, currR, currC)
-                        app.AIdrawing=True
                         localMovePiece(app, row, col, currR, currC)
                         update_killzones(app)
                     else:
@@ -608,8 +614,6 @@ def localMode_timerFired(app):
     app.whitePieces=dict() 
     init_sprites(app)
     if app.localWent==app.player:
-        if app.AIdrawing:
-            app.AIdrawing=False
         # Check if the player achieved a checkmate
         if checkMate(app, app.AIPlayer):
             app.checkMate[app.AIPlayer]=True
@@ -643,6 +647,7 @@ def onlineMode_mousePressed(app, event):
             (app.width/2)+(app.width//4.8), (app.height-(app.height//12)))
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
         y in range(int(easyBtn[1]), int(easyBtn[3]))):
+        app.switchSound.play()
         app.easyMode=not app.easyMode
     if not app.game.getWent(app.player) and not app.checkMate[app.player]:
         cell=selectCell(app, x, y)
@@ -793,6 +798,12 @@ def onlineMode_redrawAll(app, canvas):
 #######################################################
 
 def appStarted(app):
+    # Initiate sound settings
+    # pygame sound usage from https://www.pygame.org/docs/ref/mixer.html
+    pygame.mixer.init()
+    app.moveSound=pygame.mixer.Sound(os.path.join(sys.path[0], "soundFiles/move.mp3"))
+    app.btnSound=pygame.mixer.Sound(os.path.join(sys.path[0], "soundFiles/button.mp3"))
+    app.switchSound=pygame.mixer.Sound(os.path.join(sys.path[0], "soundFiles/switch.mp3"))
     # Initiate server connection settings
     app.n=Network()
     app.player=None
@@ -853,7 +864,8 @@ def appStarted(app):
     app.checkDict=init_check()
     # Initialize value multipliers list for minimax
     app.valueMultipliers=init_multipliers()
-    app.AIdrawing=False
+    # Initialize value multipliers list for minimax specific to kings
+    app.kingValueMultipliers=init_kingMultipliers()
 
 ###############################################################################
 # Initialization Functions
@@ -868,6 +880,18 @@ def init_multipliers():
             [1, 1, 1, 1.2, 1.2, 1, 1, 1], 
             [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
             [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]]
+    return result
+
+# Initialize value multipliers list for minimax specific to kings
+def init_kingMultipliers():
+    result=[[1.5, 1.2, 1, 1, 1, 1, 1.2, 1.5], 
+            [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 
+            [0, 0, 0, 0, 0, 0, 0, 0], 
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 
+            [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
+            [1.5, 1.2, 1, 1, 1, 1, 1.2, 1.5]]
     return result
 
 # Initiate checkMate dict from file
@@ -968,8 +992,13 @@ def value(app, board):
         for col in range(8):
             color=board[row][col][0]
             piece=board[row][col][1]
-            if color!=None:
-                val=app.values[(color, piece)]
+            if (color!=None) and (piece=="king"):
+                # Takes into account the position of the piece
+                val=app.values[(color, piece)]*app.kingValueMultipliers[row][col]
+                result+=val
+            elif color!=None:
+                # Takes into account the position of the piece
+                val=app.values[(color, piece)]*app.valueMultipliers[row][col]
                 result+=val
     return result
 
@@ -1954,6 +1983,9 @@ def makeMove(app, board, row, col, currR, currC):
             app.leftRookMoved[app.player]=True
     board[currR][currC]=(None, "empty")
     board[row][col]=piece
+    # Play sound if moving on main board
+    if board is app.pieces:
+        app.moveSound.play()
     update_killzones(app)
     updateCastlingEligibility(app, app.player)
     app.oldLoc=None
@@ -2129,11 +2161,11 @@ def isChecked(app, player):
 def drawCell(app, canvas, row, col):
     (x0, y0, x1, y1) = getCellBounds(app, row, col)
     if row%2==0 and col%2!=0:
-        fill="grey"
+        fill="papaya whip"
     elif row%2!=0 and col%2==0:
-        fill="grey"
+        fill="papaya whip"
     else:
-        fill="white"
+        fill="salmon4"
     if app.easyMode:
         if app.kzOutlines[row][col] is True:
             canvas.create_rectangle(x0, y0, x1, y1, fill=fill, outline='red', 

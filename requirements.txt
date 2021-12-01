@@ -1,4 +1,1 @@
-flask
-pandas
-sqlalchemy
-flask_session
+pygame

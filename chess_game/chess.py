@@ -561,7 +561,7 @@ def localMode_redrawAll(app, canvas):
 def localMode_mousePressed(app, event):
     x=event.x
     y=event.y
-    print("number:", pieceNum(app, app.pieces))
+    print("value:", value(app, app.pieces))
     easyBtn=((app.width/2)-(app.width//4.8), (app.height-(app.height//7.5)), 
             (app.width/2)+(app.width//4.8), (app.height-(app.height//12))) 
     if ((x in range(int(easyBtn[0]), int(easyBtn[2]))) and 
@@ -620,7 +620,8 @@ def localMode_timerFired(app):
             app.mode="victory"
         else:
             # Have the AI make a move
-            (AIcurrR, AIcurrC, AIrow, AIcol)=minimax(app, app.AIPlayer)
+            (bestMove, bestValue)=minimax(app, app.AIPlayer, app.pieces, 0, -9999, 9999)
+            (AIcurrR, AIcurrC, AIrow, AIcol)=bestMove
             print("move returned by minimax")
             if not isChecked(app, app.AIPlayer):
                 AIMovePiece(app, AIrow, AIcol, AIcurrR, AIcurrC)
@@ -874,10 +875,10 @@ def appStarted(app):
 def init_multipliers():
     result=[[0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], 
             [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
-            [1, 1, 1, 1.2, 1.2, 1, 1, 1], 
+            [1, 1, 1.2, 1.3, 1.3, 1.2, 1, 1], 
             [1.2, 1.2, 1.5, 2, 2, 1.5, 1.2, 1.2], 
             [1.2, 1.2, 1.5, 2, 2, 1.5, 1.2, 1.2],
-            [1, 1, 1, 1.2, 1.2, 1, 1, 1], 
+            [1, 1, 1.2, 1.3, 1.3, 1.2, 1, 1], 
             [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7], 
             [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]]
     return result
@@ -1008,19 +1009,68 @@ https://medium.com/@SereneBiologist/the-anatomy-of-a-chess-ai-2087d0d565
 """
 # Minmax algo where white is minimizing and black is maximizing
 # Returns the optimal move for the current player on the board
-def minimax(app, player):
-    alpha=float("-inf")
-    beta=float("inf")
+def minimax(app, player, board, depth, alpha, beta):
     if app.checkMate[player]:
         return None
     # White move (minimize)
     elif player==0:
-        optimal_move, value=minimize(app, app.pieces, 0, alpha, beta)
+        if depth>=2: 
+            return (None, value(app, board))
+        else:
+            best_value=9999
+            optimal_move=None
+            moves=allValidMoves(app, board, 0)
+            # Move sorting on the first level depth
+            if depth==0:
+                moves=sortMoves(app, moves, board)
+            for move in moves:
+                (currR, currC, row, col)=move
+                board=result(app, board, currR, currC, row, col) 
+                maxMove, maxValue=minimax(app, 1, board, depth+1, alpha, beta)
+                if not isChecked(app, 0):
+                    if maxValue<best_value:
+                        best_value=maxValue
+                        optimal_move=move
+                    beta=min(beta, best_value)
+                    # Alpha-Beta pruning
+                    if beta<=alpha:break
+                else:
+                    if maxValue<best_value and isGoodMove(app, row, col, currR, currC):
+                        best_value=maxValue
+                        optimal_move=move
+                    # Alpha-Beta pruning
+                    beta=min(beta, best_value)
+                    if beta<=alpha:break
     # Black move (maximize)
     elif player==1:
-        optimal_move, value=maximize(app, app.pieces, 0, alpha, beta)
-    print("board value:", value)
-    return optimal_move
+        if depth>=2: 
+            return (None, value(app, board))
+        else:
+            best_value=-9999
+            optimal_move=None
+            moves=allValidMoves(app, board, 1)
+            # Move sorting on the first level depth
+            if depth==0:
+                moves=sortMoves(app, moves, board)
+            for move in moves:
+                (currR, currC, row, col)=move
+                board=result(app, board, currR, currC, row, col)
+                minMove, minValue=minimax(app, 0, board, depth+1, alpha, beta)
+                if not isChecked(app, 1):
+                    if minValue>best_value:
+                        best_value=minValue
+                        optimal_move=move
+                    # Alpha-Beta Pruning
+                    alpha=max(alpha, best_value)
+                    if beta<=alpha: break
+                else:  
+                    if (minValue>best_value) and isGoodMove(app, row, col, currR, currC):
+                        best_value=minValue
+                        optimal_move=move
+                    # Alpha-Beta Pruning
+                    alpha=max(alpha, best_value)
+                    if beta<=alpha: break
+    return (optimal_move, best_value)
 
 """
 Alpha-Beta Pruning concept from
@@ -1032,7 +1082,7 @@ def maximize(app, board, depth, alpha, beta):
     print("depth=", depth)
     if depth>=2: 
         return (None, value(app, board))
-    best_value=float("-inf")
+    best_value=-9999
     optimal_move=None
     moves=allValidMoves(app, board, 1)
     # Move sorting on the first level depth
@@ -1068,7 +1118,7 @@ def minimize(app, board, depth, alpha, beta):
     print("depth=", depth)
     if depth>=2: 
         return (None, value(app, board))
-    best_value=float("inf")
+    best_value=9999
     optimal_move=None
     moves=allValidMoves(app, board, 0)
     # Move sorting on the first level depth
@@ -1077,7 +1127,7 @@ def minimize(app, board, depth, alpha, beta):
     for move in moves:
         (currR, currC, row, col)=move
         board=result(app, board, currR, currC, row, col)
-        minMove, maxValue=maximize(app, board, depth+1, alpha, beta)
+        maxMove, maxValue=maximize(app, board, depth+1, alpha, beta)
         if not isChecked(app, 0):
             if maxValue<best_value:
                 best_value=maxValue
@@ -1392,6 +1442,11 @@ def update_hash(app):
     pickle.dump(app.checkDict, file)
     file.close()
 
+"""
+Function inspired by 
+https://iq.opengenus.org/zobrist-hashing-game-theory/
+Adapted to fit my specific implementation of chess
+"""
 # Hash function that reduces a chess board into a zobrist hash code
 def hashBoard(app, board):
     result=0
@@ -1403,6 +1458,11 @@ def hashBoard(app, board):
                 result^=app.zobTable[row][col][value]
     return result
 
+"""
+Function inspired by 
+https://iq.opengenus.org/zobrist-hashing-game-theory/
+Adapted to fit my specific implementation of chess
+"""
 # Maps each chess piece to a value for hashing purposes
 def map_pieces(piece):
     color=piece[0]

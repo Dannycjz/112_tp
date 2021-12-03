@@ -16,7 +16,7 @@ Code basically copied from
 https://www.techwithtim.net/tutorials/python-online-game-tutorial/online-rock-paper-scissors-p1/
 '''
 # Input Local IPV4 Address
-HOST = "172.26.2.71"
+HOST = "172.26.34.16"
 port=5555
 
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)

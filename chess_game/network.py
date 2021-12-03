@@ -15,7 +15,7 @@ class Network(object):
     def __init__(self):
         self.client=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Input IPv4 Address
-        self.HOST= "172.26.2.71"
+        self.HOST= "172.26.34.16"
         self.port=5555
         self.addr=(self.HOST, self.port)
 

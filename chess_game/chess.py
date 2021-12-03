@@ -1,6 +1,6 @@
 """Local Chess Client"""
 
-import  pickle,os, pygame
+import  pickle,os, pygame, random
 from cmu_112_graphics import *
 from network import Network
 
@@ -619,20 +619,62 @@ def localMode_timerFired(app):
             app.checkMate[app.AIPlayer]=True
             app.mode="victory"
         else:
-            # Have the AI make a move
-            (bestMove, bestValue)=minimax(app, app.AIPlayer, app.pieces, 0, -9999, 9999)
-            (AIcurrR, AIcurrC, AIrow, AIcol)=bestMove
-            print("move returned by minimax")
             if not isChecked(app, app.AIPlayer):
-                AIMovePiece(app, AIrow, AIcol, AIcurrR, AIcurrC)
-                print("AI moved:", AIrow, AIcol, AIcurrR, AIcurrC)
-                update_killzones(app)
-                # Checks if the AI achieved a checkmate
-                if checkMate(app, app.player):
-                    app.checkMate[app.player]=True
-                    app.mode="defeat"
+                # Hardcoded starter moves
+                if app.movesMade==0 and app.AIPlayer==1:
+                    if random.randint(0, 1)==0:
+                        AIMovePiece(app, 3, 4, 1, 4)
+                        app.movesMade+=1
+                        return
+                    else:
+                        AIMovePiece(app, 3, 3, 1, 3)
+                        app.movesMade+=1
+                        return
+                elif app.movesMade==0 and app.AIPlayer==0:
+                    if random.randint(0, 1)==0:
+                        AIMovePiece(app, 4, 4, 6, 4)
+                        app.movesMade+=1
+                        return
+                    else:
+                        AIMovePiece(app, 4, 3, 6, 3)
+                        app.movesMade+=1
+                        return
+                elif app.movesMade==1 and app.AIPlayer==1:
+                    if random.randint(0, 1)==0:
+                        AIMovePiece(app, 2, 2, 0, 1)
+                        app.movesMade+=1
+                        return
+                    else:
+                        AIMovePiece(app, 2, 5, 0, 6)
+                        app.movesMade+=1
+                        return
+                elif app.movesMade==1 and app.AIPlayer==0:
+                    if random.randint(0, 1)==0:
+                        AIMovePiece(app, 5, 2, 7, 1)
+                        app.movesMade+=1
+                        return
+                    else:
+                        AIMovePiece(app, 5, 5, 7, 6)
+                        app.movesMade+=1
+                        return
+                else:
+                    # Have the AI make a move
+                    (bestMove, bestValue)=minimax(app, app.AIPlayer, app.pieces, 0, -9999, 9999)
+                    (AIcurrR, AIcurrC, AIrow, AIcol)=bestMove
+                    app.movesMade+=1
+                    AIMovePiece(app, AIrow, AIcol, AIcurrR, AIcurrC)
+                    print("AI moved:", AIrow, AIcol, AIcurrR, AIcurrC)
+                    update_killzones(app)
+                    # Checks if the AI achieved a checkmate
+                    if checkMate(app, app.player):
+                        app.checkMate[app.player]=True
+                        app.mode="defeat"
             else:
+                # Have the AI make a move
+                (bestMove, bestValue)=minimax(app, app.AIPlayer, app.pieces, 0, -9999, 9999)
+                (AIcurrR, AIcurrC, AIrow, AIcol)=bestMove
                 if isGoodMove(app, AIrow, AIcol, AIcurrR, AIcurrC):
+                    app.movesMade+=1
                     AIMovePiece(app, AIrow, AIcol, AIcurrR, AIcurrC)
     else:
         pass
@@ -805,6 +847,7 @@ def appStarted(app):
     app.moveSound=pygame.mixer.Sound(os.path.join(sys.path[0], "soundFiles/move.mp3"))
     app.btnSound=pygame.mixer.Sound(os.path.join(sys.path[0], "soundFiles/button.mp3"))
     app.switchSound=pygame.mixer.Sound(os.path.join(sys.path[0], "soundFiles/switch.mp3"))
+    app.movesMade=0
     # Initiate server connection settings
     app.n=Network()
     app.player=None
@@ -1035,6 +1078,7 @@ def minimax(app, player, board, depth, alpha, beta):
                     # Alpha-Beta pruning
                     if beta<=alpha:break
                 else:
+
                     if maxValue<best_value and isGoodMove(app, row, col, currR, currC):
                         best_value=maxValue
                         optimal_move=move
@@ -1114,7 +1158,7 @@ def sortMoves(app, moves, board):
     for move in moves:
         sortedMoves.append(move)
     return sortedMoves
-
+    
 # Returns a set of all valid moves 
 def allValidMoves(app, board, player):
     result=list()
